@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 // import '../screens/task_details_screen.dart';
 // import '../screens/task_form_screen.dart';
 // import '../screens/team_profile_screen.dart';
-
 class AppRoutes {
   static const String signIn = '/';
   static const String dashboard = '/dashboard';
