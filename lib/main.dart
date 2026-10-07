@@ -13,7 +13,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SLA task tracker',
-      initialRoute: AppRoutes.signIn,
+      initialRoute: AppRoutes.tasks,
       routes: AppRoutes.routes,
     );
   }

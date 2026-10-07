@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 
 // import '../screens/sign_in_screen.dart';
 // import '../screens/dashboard_screen.dart';
-// import '../screens/task_list_screen.dart';
+import 'screens/task_list_screen.dart';
+
 // import '../screens/task_details_screen.dart';
 // import '../screens/task_form_screen.dart';
 // import '../screens/team_profile_screen.dart';
@@ -18,7 +19,7 @@ class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
     // signIn: (context) => const SignInScreen(),
     // dashboard: (context) => const DashboardScreen(),
-    // tasks: (context) => const TaskListScreen(),
+    tasks: (context) => const TaskListScreen(),
     // taskDetails: (context) => const TaskDetailsScreen(),
     // createTask: (context) => const TaskFormScreen(),
     // editTask: (context) => const TaskFormScreen(),
