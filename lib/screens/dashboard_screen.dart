@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../app_routes.dart';
+import '../models/task.dart';
+import '../services/task_storage.dart';
 import '../widgets/navabar.dart';
 
 const _ink = Color(0xFF17211D);
@@ -16,6 +19,19 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int currentScreen = 0;
+  final _taskStorage = TaskStorage();
+  List<Task> _savedTasks = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final tasks = await _taskStorage.loadTasks();
+    if (mounted) setState(() => _savedTasks = tasks);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -309,26 +325,65 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
         const SizedBox(height: 8),
-        _taskCard(
-          status: 'At risk',
-          statusColor: const Color(0xFFE4AC20),
-          title: 'Finalize onboarding flow',
-          details: 'Design · Due today',
-          avatars: const [
-            _Avatar('AM', Color(0xFFA9DEC9)),
-            _Avatar('JK', Color(0xFFF4CF7D)),
-          ],
-        ),
-        const SizedBox(height: 16),
-        _taskCard(
-          status: 'Overdue',
-          statusColor: const Color(0xFFE85C50),
-          title: 'Fix payment API errors',
-          details: 'Development · 2 days late',
-          avatars: const [_Avatar('JK', Color(0xFFA9DEC9))],
-        ),
+        if (_savedTasks.isEmpty) ...[
+          _taskCard(
+            status: 'At risk',
+            statusColor: const Color(0xFFE4AC20),
+            title: 'Finalize onboarding flow',
+            details: 'Design · Due today',
+            avatars: const [
+              _Avatar('AM', Color(0xFFA9DEC9)),
+              _Avatar('JK', Color(0xFFF4CF7D)),
+            ],
+          ),
+          const SizedBox(height: 16),
+          _taskCard(
+            status: 'Overdue',
+            statusColor: const Color(0xFFE85C50),
+            title: 'Fix payment API errors',
+            details: 'Development · 2 days late',
+            avatars: const [_Avatar('JK', Color(0xFFA9DEC9))],
+          ),
+        ] else
+          ..._savedTasks.map(
+            (task) => Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: _taskCard(
+                status: task.status,
+                statusColor: _statusColor(task.status),
+                title: task.name,
+                details:
+                    '${task.priority} priority · Due ${DateFormat('MMM d').format(task.deadline)}',
+                avatars: task.assignees
+                    .map((name) => _Avatar(
+                          name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase(),
+                          const Color(0xFFA9DEC9),
+                        ))
+                    .toList(),
+                onTap: () async {
+                  await Navigator.pushNamed(
+                    context,
+                    AppRoutes.editTask,
+                    arguments: task,
+                  );
+                  _loadTasks();
+                },
+              ),
+            ),
+          ),
       ],
     );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'Done':
+        return const Color(0xFF65BE66);
+      case 'In progress':
+        return const Color(0xFFE4AC20);
+      default:
+        return const Color(0xFF77827D);
+    }
   }
 
   Widget _taskCard({
@@ -337,8 +392,12 @@ class _DashboardState extends State<Dashboard> {
     required String title,
     required String details,
     required List<_Avatar> avatars,
+    VoidCallback? onTap,
   }) {
-    return Container(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(26),
+      child: Container(
       padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -401,6 +460,7 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
         ],
+      ),
       ),
     );
   }

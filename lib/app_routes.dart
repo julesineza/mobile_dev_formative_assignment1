@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 // import 'screens/sign_in_screen.dart';
 import 'screens/dashboard_screen.dart';
 import 'screens/add_task.dart';
+import 'models/task.dart';
+
 // import '../screens/task_list_screen.dart';
 // import '../screens/task_details_screen.dart';
 // import '../screens/task_form_screen.dart';
@@ -20,7 +22,12 @@ class AppRoutes {
   static final Map<String, WidgetBuilder> routes = {
     // signIn: (context) => const SignInScreen(),
     dashboard: (context) => const Dashboard(),
-    addTask: (context) => const NewTaskScreen(),
+    addTask: (context) => NewTaskScreen(
+      task: ModalRoute.of(context)?.settings.arguments as Task?,
+    ),
+    editTask: (context) => NewTaskScreen(
+      task: ModalRoute.of(context)?.settings.arguments as Task?,
+    ),
     // tasks: (context) => const TaskListScreen(),
     // taskDetails: (context) => const TaskDetailsScreen(),
     // createTask: (context) => const TaskFormScreen(),

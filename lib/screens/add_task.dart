@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../models/task.dart';
+import '../services/task_storage.dart';
+
 const _ink = Color(0xFF17211D);
 const _muted = Color(0xFF77827D);
 const _surface = Color(0xFFF0F1EB);
 const _pageBackground = Color(0xFFFCFCF9);
 
 class NewTaskScreen extends StatefulWidget {
-  const NewTaskScreen({super.key});
+  final Task? task;
+
+  const NewTaskScreen({super.key, this.task});
 
   @override
   State<NewTaskScreen> createState() => _NewTaskScreenState();
@@ -20,7 +25,39 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   DateTime _deadline = DateTime.now().add(const Duration(days: 7));
   String _priority = 'High';
   String _status = 'To do';
-  final Set<String> _assignees = {'Mujyaneza', 'Harerimana'};
+  final Set<String> _assignees = {};
+  final Set<String> _availableAssignees = {
+    'Mujyaneza',
+    'Harerimana',
+    'Gashyantare',
+    'Hirwa',
+  };
+  final _storage = TaskStorage();
+
+  @override
+  void initState() {
+    super.initState();
+    final task = widget.task;
+    if (task != null) {
+      _nameController.text = task.name;
+      _descriptionController.text = task.description;
+      _deadline = task.deadline;
+      _priority = task.priority;
+      _status = task.status;
+      _assignees.addAll(task.assignees);
+    } else {
+      _assignees.addAll({'Mujyaneza', 'Harerimana'});
+      _loadSavedAssignees();
+    }
+  }
+
+  Future<void> _loadSavedAssignees() async {
+    final savedAssignees = await _storage.loadAssignees();
+    if (!mounted || savedAssignees.isEmpty) return;
+    setState(() {
+      _availableAssignees.addAll(savedAssignees);
+    });
+  }
 
   @override
   void dispose() {
@@ -36,9 +73,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       firstDate: DateTime.now(),
       lastDate: DateTime(2100),
       builder: (context, child) => Theme(
-        data: Theme.of(context).copyWith(
-          colorScheme: const ColorScheme.light(primary: _ink),
-        ),
+        data: Theme.of(context)
+            .copyWith(colorScheme: const ColorScheme.light(primary: _ink)),
         child: child!,
       ),
     );
@@ -60,10 +96,12 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text('Assign members',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
+              const Text(
+                'Assign members',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+              ),
               const SizedBox(height: 12),
-              ...['Mujyaneza', 'Harerimana', 'Gashyantare', 'Hirwa'].map(
+              ..._availableAssignees.map(
                 (member) => CheckboxListTile(
                   value: selected.contains(member),
                   activeColor: _ink,
@@ -111,10 +149,28 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       );
       return;
     }
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('${_nameController.text.trim()} created')),
+    final existingTask = widget.task;
+    final task = Task(
+      id: existingTask?.id ?? DateTime.now().microsecondsSinceEpoch.toString(),
+      name: _nameController.text.trim(),
+      description: _descriptionController.text.trim(),
+      deadline: _deadline,
+      priority: _priority,
+      status: _status,
+      assignees: _assignees.toList(),
     );
-    Navigator.pop(context);
+    _saveTask(task);
+  }
+
+  Future<void> _saveTask(Task task) async {
+    await _storage.saveTask(task);
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(widget.task == null ? 'Task created' : 'Task updated'),
+      ),
+    );
+    Navigator.pop(context, task);
   }
 
   @override
@@ -146,11 +202,15 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                   Row(
                     children: [
                       _closeButton(),
-                      const Expanded(
+                      Expanded(
                         child: Center(
-                          child: Text('New task',
-                              style: TextStyle(
-                                  color: _ink, fontWeight: FontWeight.w700)),
+                          child: Text(
+                            widget.task == null ? 'New task' : 'Edit task',
+                            style: TextStyle(
+                              color: _ink,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
                         ),
                       ),
                       const SizedBox(width: 40),
@@ -190,10 +250,13 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
                         foregroundColor: Colors.white,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(28)),
+                          borderRadius: BorderRadius.circular(28),
+                        ),
                       ),
-                      child: const Text('Create task',
-                          style: TextStyle(fontWeight: FontWeight.w700)),
+                      child: Text(
+                        widget.task == null ? 'Create task' : 'Save changes',
+                        style: TextStyle(fontWeight: FontWeight.w700),
+                      ),
                     ),
                   ),
                 ],
@@ -206,21 +269,31 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
   }
 
   Widget _closeButton() => IconButton(
-        onPressed: () => Navigator.pop(context),
-        icon: const Icon(Icons.close),
-        style: IconButton.styleFrom(
-            backgroundColor: _surface, foregroundColor: _ink),
-      );
+    onPressed: () => Navigator.pop(context),
+    icon: const Icon(Icons.close),
+    style: IconButton.styleFrom(
+      backgroundColor: _surface,
+      foregroundColor: _ink,
+    ),
+  );
 
   Widget _label(String value) => Padding(
-        padding: const EdgeInsets.only(bottom: 8),
-        child: Text(value,
-            style: const TextStyle(
-                color: _muted, fontSize: 11, fontWeight: FontWeight.w700)),
-      );
+    padding: const EdgeInsets.only(bottom: 8),
+    child: Text(
+      value,
+      style: const TextStyle(
+        color: _muted,
+        fontSize: 11,
+        fontWeight: FontWeight.w700,
+      ),
+    ),
+  );
 
-  Widget _textField(TextEditingController controller, String hint,
-      {int maxLines = 1}) {
+  Widget _textField(
+    TextEditingController controller,
+    String hint, {
+    int maxLines = 1,
+  }) {
     return TextFormField(
       controller: controller,
       maxLines: maxLines,
@@ -231,132 +304,157 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         hintStyle: const TextStyle(color: _muted, fontSize: 13),
         filled: true,
         fillColor: Colors.white,
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 13, vertical: 13),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 13,
+          vertical: 13,
+        ),
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFE1E5DF))),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFE1E5DF)),
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: Color(0xFFE1E5DF))),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: Color(0xFFE1E5DF)),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(14),
-            borderSide: const BorderSide(color: _ink, width: 1.5)),
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: _ink, width: 1.5),
+        ),
       ),
     );
   }
 
   Widget _dateCard() => _choiceCard(
-        icon: Icons.calendar_today_outlined,
-        label: 'Deadline',
-        value: DateFormat('MMM dd, yyyy').format(_deadline),
-        onTap: _selectDeadline,
-      );
+    icon: Icons.calendar_today_outlined,
+    label: 'Deadline',
+    value: DateFormat('MMM dd, yyyy').format(_deadline),
+    onTap: _selectDeadline,
+  );
 
   Widget _priorityCard() => _choiceCard(
-        icon: Icons.schedule_outlined,
-        label: 'Priority',
-        value: _priority,
-        onTap: () async {
-          final value = await _showChoice('Priority', ['Low', 'Medium', 'High']);
-          if (value != null) setState(() => _priority = value);
-        },
-      );
+    icon: Icons.schedule_outlined,
+    label: 'Priority',
+    value: _priority,
+    onTap: () async {
+      final value = await _showChoice('Priority', ['Low', 'Medium', 'High']);
+      if (value != null) setState(() => _priority = value);
+    },
+  );
 
   Widget _choiceCard({
     required IconData icon,
     required String label,
     required String value,
     required VoidCallback onTap,
-  }) =>
-      InkWell(
-        onTap: onTap,
+  }) => InkWell(
+    onTap: onTap,
+    borderRadius: BorderRadius.circular(16),
+    child: Container(
+      height: 98,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: _surface,
         borderRadius: BorderRadius.circular(16),
-        child: Container(
-          height: 98,
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-              color: _surface, borderRadius: BorderRadius.circular(16)),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(icon, color: _muted, size: 19),
-              const Spacer(),
-              Text(label, style: const TextStyle(color: _muted, fontSize: 10)),
-              const SizedBox(height: 3),
-              Text(value,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                      color: _ink, fontSize: 12, fontWeight: FontWeight.w700)),
-            ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: _muted, size: 19),
+          const Spacer(),
+          Text(label, style: const TextStyle(color: _muted, fontSize: 10)),
+          const SizedBox(height: 3),
+          Text(
+            value,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(
+              color: _ink,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
+            ),
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 
   Widget _assigneePicker() => InkWell(
-        onTap: _selectAssignees,
+    onTap: _selectAssignees,
+    borderRadius: BorderRadius.circular(14),
+    child: Container(
+      height: 56,
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      decoration: BoxDecoration(
+        border: Border.all(color: const Color(0xFFE1E5DF)),
         borderRadius: BorderRadius.circular(14),
-        child: Container(
-          height: 56,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFFE1E5DF)),
-              borderRadius: BorderRadius.circular(14)),
-          child: Row(
-            children: [
-              ..._assignees.take(3).map((member) => Padding(
-                    padding: const EdgeInsets.only(right: 3),
-                    child: CircleAvatar(
-                      radius: 14,
-                      backgroundColor:
-                          member == 'Amina' ? const Color(0xFFA8E1C6) : const Color(0xFFFFD977),
-                      child: Text(member.substring(0, 2).toUpperCase(),
-                          style: const TextStyle(fontSize: 9, color: _ink)),
+      ),
+      child: Row(
+        children: [
+          ..._assignees
+              .take(3)
+              .map(
+                (member) => Padding(
+                  padding: const EdgeInsets.only(right: 3),
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: member == 'Amina'
+                        ? const Color(0xFFA8E1C6)
+                        : const Color(0xFFFFD977),
+                    child: Text(
+                      member.substring(0, 2).toUpperCase(),
+                      style: const TextStyle(fontSize: 9, color: _ink),
                     ),
-                  )),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  _assignees.isEmpty
-                      ? 'Select team members'
-                      : '${_assignees.length} team members',
-                  style: const TextStyle(
-                      color: _ink, fontSize: 13, fontWeight: FontWeight.w700),
-                ),
-              ),
-              const Icon(Icons.keyboard_arrow_down, color: _muted),
-            ],
-          ),
-        ),
-      );
-
-  Widget _statusPicker() => Row(
-        children: ['To do', 'In progress', 'Done']
-            .map(
-              (status) => Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: SizedBox(
-                        width: double.infinity,
-                        child: Text(status, textAlign: TextAlign.center)),
-                    selected: _status == status,
-                    onSelected: (_) => setState(() => _status = status),
-                    selectedColor: _ink,
-                    backgroundColor: _surface,
-                    labelStyle: TextStyle(
-                        color: _status == status ? Colors.white : _muted,
-                        fontSize: 11),
-                    showCheckmark: false,
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(18),
-                        side: BorderSide.none),
                   ),
                 ),
               ),
-            )
-            .toList(),
-      );
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _assignees.isEmpty
+                  ? 'Select team members'
+                  : '${_assignees.length} team members',
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+          const Icon(Icons.keyboard_arrow_down, color: _muted),
+        ],
+      ),
+    ),
+  );
+
+  Widget _statusPicker() => Row(
+    children: ['To do', 'In progress', 'Done']
+        .map(
+          (status) => Expanded(
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: ChoiceChip(
+                label: SizedBox(
+                  width: double.infinity,
+                  child: Text(status, textAlign: TextAlign.center),
+                ),
+                selected: _status == status,
+                onSelected: (_) => setState(() => _status = status),
+                selectedColor: _ink,
+                backgroundColor: _surface,
+                labelStyle: TextStyle(
+                  color: _status == status ? Colors.white : _muted,
+                  fontSize: 11,
+                ),
+                showCheckmark: false,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: BorderSide.none,
+                ),
+              ),
+            ),
+          ),
+        )
+        .toList(),
+  );
 
   Future<String?> _showChoice(String title, List<String> options) =>
       showModalBottomSheet<String>(
@@ -367,14 +465,20 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
             children: [
               Padding(
                 padding: const EdgeInsets.all(20),
-                child: Text(title,
-                    style: const TextStyle(
-                        fontSize: 18, fontWeight: FontWeight.w700)),
+                child: Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
-              ...options.map((option) => ListTile(
-                    title: Text(option),
-                    onTap: () => Navigator.pop(context, option),
-                  )),
+              ...options.map(
+                (option) => ListTile(
+                  title: Text(option),
+                  onTap: () => Navigator.pop(context, option),
+                ),
+              ),
               const SizedBox(height: 12),
             ],
           ),
