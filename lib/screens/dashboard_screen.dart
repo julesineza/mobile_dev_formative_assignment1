@@ -7,7 +7,6 @@ const _ink = Color(0xFF17211D);
 const _muted = Color(0xFF7C8883);
 const _pageBackground = Color.fromRGBO(252, 252, 249, 1);
 
-
 class Dashboard extends StatefulWidget {
   const Dashboard({super.key});
 
@@ -17,8 +16,6 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   int currentScreen = 0;
-
-  
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +88,6 @@ class _DashboardState extends State<Dashboard> {
             ],
           ),
         ),
-        
       ],
     );
   }
@@ -259,7 +255,7 @@ class _DashboardState extends State<Dashboard> {
               children: [
                 Container(
                   width: 30,
-                  height:30,
+                  height: 30,
                   decoration: BoxDecoration(
                     color: dotColor,
                     shape: BoxShape.circle,
