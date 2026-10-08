@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+
 import 'app_routes.dart';
 
 void main() {
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(const MyApp());
 }
 
@@ -13,7 +15,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'SLA task tracker',
-      initialRoute: AppRoutes.signIn,
+      initialRoute: AppRoutes.dashboard,
       routes: AppRoutes.routes,
     );
   }
