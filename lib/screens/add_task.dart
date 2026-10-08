@@ -63,7 +63,7 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
               const Text('Assign members',
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700)),
               const SizedBox(height: 12),
-              ...['Amina', 'Liam', 'Sam', 'Nora'].map(
+              ...['Mujyaneza', 'Harerimana', 'Gashyantare', 'Hirwa'].map(
                 (member) => CheckboxListTile(
                   value: selected.contains(member),
                   activeColor: _ink,
@@ -124,9 +124,9 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       appBar: AppBar(
         backgroundColor: _pageBackground,
         elevation: 0,
-        title: const Text('New task',
-            style: TextStyle(color: _muted, fontSize: 23)),
-        iconTheme: const IconThemeData(color: _ink),
+        // title: const Text('New task',
+        //     style: TextStyle(color: _muted, fontSize: 23)),
+        // iconTheme: const IconThemeData(color: _ink),
       ),
       body: SafeArea(
         child: Form(

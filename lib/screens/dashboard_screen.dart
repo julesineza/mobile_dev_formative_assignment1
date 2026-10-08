@@ -29,8 +29,11 @@ class _DashboardState extends State<Dashboard> {
         child: ScrollConfiguration(
           behavior: const _DashboardScrollBehavior(),
           child: SingleChildScrollView(
-            physics: const ClampingScrollPhysics(),
-            padding: const EdgeInsets.fromLTRB(24, 20, 24, 24),
+            physics: const AlwaysScrollableScrollPhysics(
+              parent: ClampingScrollPhysics(),
+            ),
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: const EdgeInsets.fromLTRB(24, 20, 24, 112),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
