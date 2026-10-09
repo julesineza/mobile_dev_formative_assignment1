@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
 import '../widgets/navabar.dart';
 import '../widgets/task_card.dart';
+import '../app_routes.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -199,7 +200,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Navbar(selectedIndex: 1, onItemSelected: (index) {}),
+      bottomNavigationBar: Navbar(
+        selectedIndex: 1,
+        onItemSelected: (index) {
+          if (index == 0) {
+            Navigator.popUntil(
+              context,
+              ModalRoute.withName(AppRoutes.dashboard),
+            );
+          }
+        },
+      ),
     );
   }
 }

@@ -71,10 +71,12 @@ class _DashboardState extends State<Dashboard> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
         child: Navbar(
-          selectedIndex: currentScreen,
+          selectedIndex: 0,
           onItemSelected: (index) {
             setState(() {
-              currentScreen = index;
+              if (index == 1) {
+                Navigator.pushNamed(context, AppRoutes.tasks);
+              }
             });
           },
         ),
@@ -355,10 +357,14 @@ class _DashboardState extends State<Dashboard> {
                 details:
                     '${task.priority} priority · Due ${DateFormat('MMM d').format(task.deadline)}',
                 avatars: task.assignees
-                    .map((name) => _Avatar(
-                          name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase(),
-                          const Color(0xFFA9DEC9),
-                        ))
+                    .map(
+                      (name) => _Avatar(
+                        name
+                            .substring(0, name.length >= 2 ? 2 : 1)
+                            .toUpperCase(),
+                        const Color(0xFFA9DEC9),
+                      ),
+                    )
                     .toList(),
                 onTap: () async {
                   await Navigator.pushNamed(
@@ -398,69 +404,69 @@ class _DashboardState extends State<Dashboard> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(26),
       child: Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE0E4DE)),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: .2),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor.withValues(alpha: .95),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE0E4DE)),
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor.withValues(alpha: .95),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              const Icon(Icons.more_horiz, color: _muted),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+                const Spacer(),
+                const Icon(Icons.more_horiz, color: _muted),
+              ],
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(details, style: const TextStyle(color: _muted, fontSize: 16)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 70,
-                height: 38,
-                child: Stack(
-                  children: [
-                    for (var i = 0; i < avatars.length; i++)
-                      Positioned(left: i * 28, child: _avatar(avatars[i])),
-                  ],
-                ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
               ),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: _muted, size: 28),
-            ],
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(height: 5),
+            Text(details, style: const TextStyle(color: _muted, fontSize: 16)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                SizedBox(
+                  width: 70,
+                  height: 38,
+                  child: Stack(
+                    children: [
+                      for (var i = 0; i < avatars.length; i++)
+                        Positioned(left: i * 28, child: _avatar(avatars[i])),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.chevron_right, color: _muted, size: 28),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
