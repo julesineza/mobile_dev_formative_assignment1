@@ -145,11 +145,52 @@ class _TaskListScreenState extends State<TaskListScreen> {
               ),
             ),
             const SizedBox(height: 20),
+            const Text(
+              'TODAY · 2 TASKS',
+              style: TextStyle(color: Color(0xFF7C8883), fontSize: 12),
+            ),
+            const SizedBox(height: 12),
             const TaskCard(
               title: 'Finalize onboarding flow',
               details: 'Design · Due 4:00 PM',
               status: 'At risk',
               statusColor: AppColors.atRisk,
+              avatars: [
+                TaskAvatar('AM', AppColors.avatarMint),
+                TaskAvatar('JK', AppColors.avatarGold),
+              ],
+            ),
+            const TaskCard(
+              title: 'Reciew empty states',
+              details: 'Design · Due 6:00 PM',
+              status: 'On track',
+              statusColor: AppColors.onTrack,
+              avatars: [
+                TaskAvatar('AM', AppColors.avatarMint),
+                TaskAvatar('JK', AppColors.avatarGold),
+              ],
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'EARLIER',
+              style: TextStyle(color: AppColors.muted, fontSize: 12),
+            ),
+            const SizedBox(height: 12),
+            const TaskCard(
+              title: 'Finalize onboarding flow',
+              details: 'Design · Due 4:00 PM',
+              status: 'Overdue',
+              statusColor: AppColors.overdue,
+              avatars: [
+                TaskAvatar('AM', AppColors.avatarMint),
+                TaskAvatar('JK', AppColors.avatarGold),
+              ],
+            ),
+            TaskCard(
+              title: 'Prepare Release Notes',
+              details: 'Product · Completed 2 days ago',
+              status: 'Completed',
+              statusColor: AppColors.completed,
               avatars: [
                 TaskAvatar('AM', AppColors.avatarMint),
                 TaskAvatar('JK', AppColors.avatarGold),
