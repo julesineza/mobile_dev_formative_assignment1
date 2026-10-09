@@ -15,27 +15,29 @@ class Navbar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      height: 72,
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-        color: const Color(0xFF111B18),
-        borderRadius: BorderRadius.circular(40),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _navItem(icon: Icons.home_outlined, index: 0),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+      child: Container(
+        height: 80,
+        padding: const EdgeInsets.symmetric(horizontal: 8),
+        decoration: BoxDecoration(
+          color: const Color.fromRGBO(23, 32, 27, 1),
+          borderRadius: BorderRadius.circular(100),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
+          children: [
+            _navItem(icon: Icons.home_outlined, index: 0),
 
-          _navItem(icon: Icons.checklist, index: 1),
+            _navItem(icon: Icons.checklist, index: 1),
 
           _addButton(context),
 
-          _navItem(icon: Icons.people_outline, index: 3),
+            _navItem(icon: Icons.people_outline, index: 3),
 
-          _navItem(icon: Icons.chat_bubble_outline, index: 4),
-        ],
+            _navItem(icon: Icons.chat_bubble_outline, index: 4),
+          ],
+        ),
       ),
     );
   }
