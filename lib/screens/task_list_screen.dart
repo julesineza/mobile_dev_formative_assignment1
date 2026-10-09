@@ -15,8 +15,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Scaffold(
       backgroundColor: Color.fromRGBO(252, 252, 249, 1),
       body: SafeArea(
-        child: ListView(padding: const EdgeInsets.all(24), children: [
-            
+        child: ListView(
+          padding: const EdgeInsets.all(24),
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [Text("Tasks"), Text("2/5")],
+            ),
           ],
         ),
       ),
