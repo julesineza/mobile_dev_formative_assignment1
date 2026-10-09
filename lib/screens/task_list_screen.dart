@@ -151,15 +151,16 @@ class _TaskListScreenState extends State<TaskListScreen> {
               style: TextStyle(color: Color(0xFF7C8883), fontSize: 12),
             ),
             const SizedBox(height: 12),
-            const TaskCard(
+            TaskCard(
               title: 'Finalize onboarding flow',
               details: 'Design · Due 4:00 PM',
               status: 'At risk',
               statusColor: AppColors.atRisk,
-              avatars: [
+              avatars: const [
                 TaskAvatar('AM', AppColors.avatarMint),
                 TaskAvatar('JK', AppColors.avatarGold),
               ],
+              onTap: () => Navigator.pushNamed(context, AppRoutes.taskDetails),
             ),
             const TaskCard(
               title: 'Reciew empty states',
