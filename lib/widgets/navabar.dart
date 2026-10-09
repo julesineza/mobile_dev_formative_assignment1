@@ -1,4 +1,7 @@
+
 import 'package:flutter/material.dart';
+
+import '../app_routes.dart';
 
 class Navbar extends StatelessWidget {
   final int selectedIndex;
@@ -28,7 +31,7 @@ class Navbar extends StatelessWidget {
 
             _navItem(icon: Icons.checklist, index: 1),
 
-            _addButton(),
+          _addButton(context),
 
             _navItem(icon: Icons.people_outline, index: 3),
 
@@ -45,8 +48,8 @@ class Navbar extends StatelessWidget {
     return GestureDetector(
       onTap: () => onItemSelected(index),
       child: Container(
-        width: 50,
-        height: 50,
+        width: 60,
+        height: 60,
         decoration: BoxDecoration(
           color: isSelected ? Colors.white : Colors.transparent,
           shape: BoxShape.circle,
@@ -60,12 +63,12 @@ class Navbar extends StatelessWidget {
     );
   }
 
-  Widget _addButton() {
+  Widget _addButton(BuildContext context) {
     return GestureDetector(
-      onTap: () => onItemSelected(2),
+      onTap: () => Navigator.pushNamed(context, AppRoutes.addTask),
       child: Container(
-        width: 44,
-        height: 44,
+        width: 60,
+        height: 60,
         decoration: const BoxDecoration(
           color: Colors.white,
           shape: BoxShape.circle,
