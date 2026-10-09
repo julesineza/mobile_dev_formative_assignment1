@@ -24,37 +24,22 @@ class Navbar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _navItem(
-              icon: Icons.home_outlined,
-              index: 0,
-            ),
+            _navItem(icon: Icons.home_outlined, index: 0),
 
-            _navItem(
-              icon: Icons.checklist,
-              index: 1,
-            ),
+            _navItem(icon: Icons.checklist, index: 1),
 
             _addButton(),
 
-            _navItem(
-              icon: Icons.people_outline,
-              index: 3,
-            ),
+            _navItem(icon: Icons.people_outline, index: 3),
 
-            // _navItem(
-            //   icon: Icons.chat_bubble_outline,
-            //   index: 4,
-            // ),
+            _navItem(icon: Icons.chat_bubble_outline, index: 4),
           ],
         ),
       ),
     );
   }
 
-  Widget _navItem({
-    required IconData icon,
-    required int index,
-  }) {
+  Widget _navItem({required IconData icon, required int index}) {
     final bool isSelected = selectedIndex == index;
 
     return GestureDetector(
@@ -69,9 +54,7 @@ class Navbar extends StatelessWidget {
         child: Icon(
           icon,
           size: 29,
-          color: isSelected
-              ? const Color(0xFF111B18)
-              : const Color(0xFF7A8580),
+          color: isSelected ? const Color(0xFF111B18) : const Color(0xFF7A8580),
         ),
       ),
     );
@@ -87,11 +70,7 @@ class Navbar extends StatelessWidget {
           color: Colors.white,
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.add,
-          size: 32,
-          color: Color(0xFF111B18),
-        ),
+        child: const Icon(Icons.add, size: 32, color: Color(0xFF111B18)),
       ),
     );
   }

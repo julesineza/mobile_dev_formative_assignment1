@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../theme/app_colors.dart';
 import '../widgets/navabar.dart';
+import '../widgets/task_card.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -10,17 +12,148 @@ class TaskListScreen extends StatefulWidget {
 }
 
 class _TaskListScreenState extends State<TaskListScreen> {
+  String selectedFilter = 'All';
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Color.fromRGBO(252, 252, 249, 1),
+      backgroundColor: AppColors.pageBackground,
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(24),
           children: [
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text("Tasks"), Text("2/5")],
+              children: [
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Sprint 04',
+                      style: TextStyle(color: AppColors.muted, fontSize: 14),
+                    ),
+                    SizedBox(height: 4),
+                    Text(
+                      'All tasks',
+                      style: TextStyle(
+                        color: AppColors.ink,
+                        fontSize: 28,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+                IconButton.filledTonal(
+                  onPressed: () {},
+                  style: IconButton.styleFrom(
+                    backgroundColor: AppColors.softBackground,
+                    foregroundColor: AppColors.ink,
+                    fixedSize: const Size(50, 50),
+                    shape: const CircleBorder(),
+                  ),
+                  icon: const Icon(Icons.notifications_outlined, size: 26),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                spacing: 8,
+                children: [
+                  ChoiceChip(
+                    label: const Text('All'),
+                    selected: selectedFilter == 'All',
+                    onSelected: (selected) {
+                      setState(() {
+                        selectedFilter = 'All';
+                      });
+                    },
+                    showCheckmark: false,
+                    selectedColor: AppColors.ink,
+                    backgroundColor: AppColors.softBackground,
+                    side: BorderSide.none,
+                    shape: const StadiumBorder(),
+                    labelStyle: TextStyle(
+                      color: selectedFilter == 'All'
+                          ? AppColors.white
+                          : AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  ChoiceChip(
+                    label: const Text('My tasks'),
+                    selected: selectedFilter == 'My tasks',
+                    onSelected: (selected) {
+                      setState(() {
+                        selectedFilter = 'My tasks';
+                      });
+                    },
+                    showCheckmark: false,
+                    selectedColor: AppColors.ink,
+                    backgroundColor: AppColors.softBackground,
+                    side: BorderSide.none,
+                    shape: const StadiumBorder(),
+                    labelStyle: TextStyle(
+                      color: selectedFilter == 'My tasks'
+                          ? AppColors.white
+                          : AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  ChoiceChip(
+                    label: const Text('At risk'),
+                    selected: selectedFilter == 'At risk',
+                    onSelected: (selected) {
+                      setState(() {
+                        selectedFilter = 'At risk';
+                      });
+                    },
+                    showCheckmark: false,
+                    selectedColor: AppColors.ink,
+                    backgroundColor: AppColors.softBackground,
+                    side: BorderSide.none,
+                    shape: const StadiumBorder(),
+                    labelStyle: TextStyle(
+                      color: selectedFilter == 'At risk'
+                          ? AppColors.white
+                          : AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  ChoiceChip(
+                    label: const Text('Completed'),
+                    selected: selectedFilter == 'Completed',
+                    onSelected: (selected) {
+                      setState(() {
+                        selectedFilter = 'Completed';
+                      });
+                    },
+                    showCheckmark: false,
+                    selectedColor: AppColors.ink,
+                    backgroundColor: AppColors.softBackground,
+                    side: BorderSide.none,
+                    shape: const StadiumBorder(),
+                    labelStyle: TextStyle(
+                      color: selectedFilter == 'Completed'
+                          ? AppColors.white
+                          : AppColors.muted,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+            const TaskCard(
+              title: 'Finalize onboarding flow',
+              details: 'Design · Due 4:00 PM',
+              status: 'At risk',
+              statusColor: AppColors.atRisk,
+              avatars: [
+                TaskAvatar('AM', AppColors.avatarMint),
+                TaskAvatar('JK', AppColors.avatarGold),
+              ],
             ),
           ],
         ),
