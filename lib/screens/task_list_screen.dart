@@ -89,6 +89,49 @@ class _TaskListScreenState extends State<TaskListScreen> {
     await _loadTasks();
   }
 
+  Future<void> _deleteTask(Task task) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete task?'),
+        content: Text('Delete "${task.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _storage.deleteTask(task.id);
+
+      if (!mounted) return;
+      await _loadTasks();
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete the task. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openTaskDetails(Task task) async {
+    await Navigator.pushNamed(context, AppRoutes.taskDetails, arguments: task);
+
+    if (!mounted) return;
+    await _loadTasks();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -107,7 +150,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sprint 04',
+                        'Sprint',
                         style: TextStyle(color: AppColors.muted, fontSize: 14),
                       ),
                       SizedBox(height: 4),
@@ -270,7 +313,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                               : AppColors.avatarGold,
                         ),
                     ],
-                    onTap: () => _editTask(task),
+                    onTap: () => _openTaskDetails(task),
+                    onEdit: () => _editTask(task),
+                    onDelete: () => _deleteTask(task),
                   ),
                 ),
             ],

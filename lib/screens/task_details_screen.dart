@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../models/task.dart';
+
+import 'package:intl/intl.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
-  const TaskDetailsScreen({super.key});
+  final Task task;
+
+  const TaskDetailsScreen({super.key, required this.task});
 
   @override
   State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
@@ -114,9 +119,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Finalize onboarding flow',
-              style: TextStyle(
+            Text(
+              widget.task.name,
+              style: const TextStyle(
                 color: AppColors.ink,
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -124,10 +129,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Complete the final screens and handoff notes for '
-              'the new account onboarding experience.',
-              style: TextStyle(
+            Text(
+              widget.task.description,
+              style: const TextStyle(
                 color: AppColors.muted,
                 fontSize: 14,
                 height: 1.5,
@@ -146,19 +150,22 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _infoRow(
                     icon: Icons.calendar_month_outlined,
                     label: 'Deadline',
-                    value: 'Today, 4:00 PM',
+                    value: DateFormat('MMM d, yyyy')
+                        .format(widget.task.deadline),
                   ),
                   const Divider(height: 28, color: Color(0xFFE3E7DF)),
                   _infoRow(
                     icon: Icons.account_circle_outlined,
                     label: 'Assigned to',
-                    value: 'Amina & Jonas',
+                    value: widget.task.assignees.isEmpty
+                        ? 'Unassigned'
+                        : widget.task.assignees.join(', '),
                   ),
                   const Divider(height: 28, color: Color(0xFFE3E7DF)),
                   _infoRow(
                     icon: Icons.access_time,
                     label: 'Priority',
-                    value: 'High',
+                    value: widget.task.priority,
                   ),
                 ],
               ),
