@@ -22,6 +22,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   List<Task> _tasks = [];
   bool _isLoading = true;
   String? _loadError;
+
   @override
   void initState() {
     super.initState();
@@ -224,6 +225,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
               const SizedBox(height: 20),
               if (_isLoading)
                 const Center(child: CircularProgressIndicator())
+              else if (_loadError != null)
+                Column(
+                  children: [
+                    Text(_loadError!),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => _loadTasks(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                )
               else if (_filteredTasks.isEmpty)
                 const Text('No tasks match this filter.')
               else
