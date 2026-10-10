@@ -7,6 +7,8 @@ import '../widgets/navabar.dart';
 import '../widgets/task_card.dart';
 import '../app_routes.dart';
 
+import 'package:intl/intl.dart';
+
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
 
@@ -19,6 +21,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
   final _storage = TaskStorage();
   List<Task> _tasks = [];
   bool _isLoading = true;
+  String? _loadError;
   @override
   void initState() {
     super.initState();
@@ -52,14 +55,30 @@ class _TaskListScreenState extends State<TaskListScreen> {
   }
 
   Future<void> _loadTasks() async {
-    final tasks = await _storage.loadTasks();
-
     if (!mounted) return;
 
     setState(() {
-      _tasks = tasks;
-      _isLoading = false;
+      _isLoading = true;
+      _loadError = null;
     });
+
+    try {
+      final tasks = await _storage.loadTasks();
+
+      if (!mounted) return;
+
+      setState(() {
+        _tasks = tasks;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Could not load your tasks. Please try again.';
+      });
+    }
   }
 
   Future<void> _editTask(Task task) async {
@@ -74,169 +93,176 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sprint 04',
-                      style: TextStyle(color: AppColors.muted, fontSize: 14),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      'All tasks',
-                      style: TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ],
-                ),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.softBackground,
-                    foregroundColor: AppColors.ink,
-                    fixedSize: const Size(50, 50),
-                    shape: const CircleBorder(),
-                  ),
-                  icon: const Icon(Icons.notifications_outlined, size: 26),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                spacing: 8,
+        child: RefreshIndicator(
+          onRefresh: _loadTasks,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  ChoiceChip(
-                    label: const Text('All'),
-                    selected: selectedFilter == 'All',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'All';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'All'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sprint 04',
+                        style: TextStyle(color: AppColors.muted, fontSize: 14),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'All tasks',
+                        style: TextStyle(
+                          color: AppColors.ink,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
                   ),
-                  ChoiceChip(
-                    label: const Text('My tasks'),
-                    selected: selectedFilter == 'My tasks',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'My tasks';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'My tasks'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
+                  IconButton.filledTonal(
+                    onPressed: () {},
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.softBackground,
+                      foregroundColor: AppColors.ink,
+                      fixedSize: const Size(50, 50),
+                      shape: const CircleBorder(),
                     ),
-                  ),
-                  ChoiceChip(
-                    label: const Text('At risk'),
-                    selected: selectedFilter == 'At risk',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'At risk';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'At risk'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Completed'),
-                    selected: selectedFilter == 'Completed',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'Completed';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'Completed'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    icon: const Icon(Icons.notifications_outlined, size: 26),
                   ),
                 ],
               ),
-            ),
-            const SizedBox(height: 20),
-            if (_isLoading)
-              const Center(child: CircularProgressIndicator())
-            else if (_filteredTasks.isEmpty)
-              const Text('No tasks match this filter.')
-            else
-              ..._filteredTasks.map(
-                (task) => TaskCard(
-                  title: task.name,
-                  details: task.description,
-                  status: _isOverdue(task)
-                      ? 'Overdue'
-                      : _isAtRisk(task)
-                      ? 'At risk'
-                      : task.status,
-                  statusColor: task.status == 'Done'
-                      ? AppColors.completed
-                      : _isOverdue(task)
-                      ? AppColors.overdue
-                      : _isAtRisk(task)
-                      ? AppColors.atRisk
-                      : AppColors.onTrack,
-                  avatars: [
-                    for (int i = 0; i < task.assignees.length; i++)
-                      TaskAvatar(
-                        task.assignees[i]
-                            .trim()
-                            .toUpperCase()
-                            .characters
-                            .take(2)
-                            .toString(),
-                        i.isEven ? AppColors.avatarMint : AppColors.avatarGold,
+              const SizedBox(height: 20),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All'),
+                      selected: selectedFilter == 'All',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'All';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'All'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
                       ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('My tasks'),
+                      selected: selectedFilter == 'My tasks',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'My tasks';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'My tasks'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('At risk'),
+                      selected: selectedFilter == 'At risk',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'At risk';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'At risk'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Completed'),
+                      selected: selectedFilter == 'Completed',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'Completed';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'Completed'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ],
-                  onTap: () => _editTask(task),
                 ),
               ),
-          ],
+              const SizedBox(height: 20),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (_filteredTasks.isEmpty)
+                const Text('No tasks match this filter.')
+              else
+                ..._filteredTasks.map(
+                  (task) => TaskCard(
+                    title: task.name,
+                    details:
+                        '${task.description}\nDue ${DateFormat('MMM d, yyyy').format(task.deadline)}',
+                    status: _isOverdue(task)
+                        ? 'Overdue'
+                        : _isAtRisk(task)
+                        ? 'At risk'
+                        : task.status,
+                    statusColor: task.status == 'Done'
+                        ? AppColors.completed
+                        : _isOverdue(task)
+                        ? AppColors.overdue
+                        : _isAtRisk(task)
+                        ? AppColors.atRisk
+                        : AppColors.onTrack,
+                    avatars: [
+                      for (int i = 0; i < task.assignees.length; i++)
+                        TaskAvatar(
+                          task.assignees[i]
+                              .trim()
+                              .toUpperCase()
+                              .characters
+                              .take(2)
+                              .toString(),
+                          i.isEven
+                              ? AppColors.avatarMint
+                              : AppColors.avatarGold,
+                        ),
+                    ],
+                    onTap: () => _editTask(task),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(
