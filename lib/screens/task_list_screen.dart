@@ -25,6 +25,25 @@ class _TaskListScreenState extends State<TaskListScreen> {
     _loadTasks();
   }
 
+  bool _isAtRisk(Task task) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+    return task.status != 'Done' && task.deadline.isBefore(tomorrow);
+  }
+
+  List<Task> get _filteredTasks {
+    if (selectedFilter == 'At risk') {
+      return _tasks.where(_isAtRisk).toList();
+    }
+
+    if (selectedFilter == 'Completed') {
+      return _tasks.where((task) => task.status == 'Done').toList();
+    }
+
+    return _tasks;
+  }
+
   Future<void> _loadTasks() async {
     final tasks = await _storage.loadTasks();
 
@@ -176,16 +195,18 @@ class _TaskListScreenState extends State<TaskListScreen> {
             const SizedBox(height: 20),
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
-            else if (_tasks.isEmpty)
-              const Text('No tasks yet. Add your first task.')
+            else if (_filteredTasks.isEmpty)
+              const Text('No tasks match this filter.')
             else
-              ..._tasks.map(
+              ..._filteredTasks.map(
                 (task) => TaskCard(
                   title: task.name,
                   details: task.description,
-                  status: task.status,
+                  status: _isAtRisk(task) ? 'At risk' : task.status,
                   statusColor: task.status == 'Done'
                       ? AppColors.completed
+                      : _isAtRisk(task)
+                      ? AppColors.atRisk
                       : AppColors.onTrack,
                   avatars: const [],
                   onTap: () => _editTask(task),
