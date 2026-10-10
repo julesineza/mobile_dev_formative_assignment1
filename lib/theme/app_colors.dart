@@ -7,7 +7,7 @@ class AppColors {
   static const Color softBackground = Color.fromARGB(255, 238, 240, 233);
   static const Color atRisk = Color.fromARGB(255, 228, 172, 32);
   static const Color completed = Color.fromARGB(255, 102, 187, 130);
-  static const Color overdue = Color.fromARGB(255, 228, 110, 32);
+  static const Color overdue = Color.fromARGB(255, 228, 74, 32);
   static const Color onTrack = Color.fromARGB(255, 102, 187, 130);
   static const Color avatarMint = Color.fromARGB(255, 169, 222, 201);
   static const Color avatarGold = Color.fromARGB(255, 244, 207, 125);

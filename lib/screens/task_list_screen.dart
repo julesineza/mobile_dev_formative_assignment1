@@ -32,6 +32,13 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return task.status != 'Done' && task.deadline.isBefore(tomorrow);
   }
 
+  bool _isOverdue(Task task) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return task.status != 'Done' && task.deadline.isBefore(today);
+  }
+
   List<Task> get _filteredTasks {
     if (selectedFilter == 'At risk') {
       return _tasks.where(_isAtRisk).toList();
@@ -202,13 +209,30 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 (task) => TaskCard(
                   title: task.name,
                   details: task.description,
-                  status: _isAtRisk(task) ? 'At risk' : task.status,
+                  status: _isOverdue(task)
+                      ? 'Overdue'
+                      : _isAtRisk(task)
+                      ? 'At risk'
+                      : task.status,
                   statusColor: task.status == 'Done'
                       ? AppColors.completed
+                      : _isOverdue(task)
+                      ? AppColors.overdue
                       : _isAtRisk(task)
                       ? AppColors.atRisk
                       : AppColors.onTrack,
-                  avatars: const [],
+                  avatars: [
+                    for (int i = 0; i < task.assignees.length; i++)
+                      TaskAvatar(
+                        task.assignees[i]
+                            .trim()
+                            .toUpperCase()
+                            .characters
+                            .take(2)
+                            .toString(),
+                        i.isEven ? AppColors.avatarMint : AppColors.avatarGold,
+                      ),
+                  ],
                   onTap: () => _editTask(task),
                 ),
               ),
