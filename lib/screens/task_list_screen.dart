@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../models/task.dart';
+import '../services/task_storage.dart';
 import '../theme/app_colors.dart';
 import '../widgets/navabar.dart';
 import '../widgets/task_card.dart';
@@ -14,6 +16,32 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   String selectedFilter = 'All';
+  final _storage = TaskStorage();
+  List<Task> _tasks = [];
+  bool _isLoading = true;
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  Future<void> _loadTasks() async {
+    final tasks = await _storage.loadTasks();
+
+    if (!mounted) return;
+
+    setState(() {
+      _tasks = tasks;
+      _isLoading = false;
+    });
+  }
+
+  Future<void> _editTask(Task task) async {
+    await Navigator.pushNamed(context, AppRoutes.editTask, arguments: task);
+
+    if (!mounted) return;
+    await _loadTasks();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -146,58 +174,23 @@ class _TaskListScreenState extends State<TaskListScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              'TODAY · 2 TASKS',
-              style: TextStyle(color: Color(0xFF7C8883), fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            TaskCard(
-              title: 'Finalize onboarding flow',
-              details: 'Design · Due 4:00 PM',
-              status: 'At risk',
-              statusColor: AppColors.atRisk,
-              avatars: const [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-              onTap: () => Navigator.pushNamed(context, AppRoutes.taskDetails),
-            ),
-            const TaskCard(
-              title: 'Reciew empty states',
-              details: 'Design · Due 6:00 PM',
-              status: 'On track',
-              statusColor: AppColors.onTrack,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'EARLIER',
-              style: TextStyle(color: AppColors.muted, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            const TaskCard(
-              title: 'Finalize onboarding flow',
-              details: 'Design · Due 4:00 PM',
-              status: 'Overdue',
-              statusColor: AppColors.overdue,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
-            TaskCard(
-              title: 'Prepare Release Notes',
-              details: 'Product · Completed 2 days ago',
-              status: 'Completed',
-              statusColor: AppColors.completed,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
+            if (_isLoading)
+              const Center(child: CircularProgressIndicator())
+            else if (_tasks.isEmpty)
+              const Text('No tasks yet. Add your first task.')
+            else
+              ..._tasks.map(
+                (task) => TaskCard(
+                  title: task.name,
+                  details: task.description,
+                  status: task.status,
+                  statusColor: task.status == 'Done'
+                      ? AppColors.completed
+                      : AppColors.onTrack,
+                  avatars: const [],
+                  onTap: () => _editTask(task),
+                ),
+              ),
           ],
         ),
       ),
