@@ -201,16 +201,19 @@ class _TaskListScreenState extends State<TaskListScreen> {
           ],
         ),
       ),
-      bottomNavigationBar: Navbar(
-        selectedIndex: 1,
-        onItemSelected: (index) {
-          if (index == 0) {
-            Navigator.popUntil(
-              context,
-              ModalRoute.withName(AppRoutes.dashboard),
-            );
-          }
-        },
+      bottomNavigationBar: Padding(
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
+        child: Navbar(
+          selectedIndex: 1,
+          onItemSelected: (index) {
+            if (index == 0) {
+              Navigator.popUntil(
+                context,
+                ModalRoute.withName(AppRoutes.dashboard),
+              );
+            }
+          },
+        ),
       ),
     );
   }

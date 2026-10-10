@@ -69,7 +69,7 @@ class _DashboardState extends State<Dashboard> {
         ),
       ),
       bottomNavigationBar: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
+        padding: const EdgeInsets.fromLTRB(12, 0, 12, 0),
         child: Navbar(
           selectedIndex: 0,
           onItemSelected: (index) {
