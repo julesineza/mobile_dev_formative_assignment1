@@ -57,6 +57,29 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
+  String get _displayStatus {
+    final task = widget.task;
+
+    if (task.status == 'Done') return 'Done';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+    if (task.deadline.isBefore(today)) return 'Overdue';
+    if (task.deadline.isBefore(tomorrow)) return 'At risk';
+
+    return task.status;
+  }
+
+  Color get _statusColor {
+    if (_displayStatus == 'Done') return AppColors.completed;
+    if (_displayStatus == 'Overdue') return AppColors.overdue;
+    if (_displayStatus == 'At risk') return AppColors.atRisk;
+
+    return AppColors.onTrack;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -105,13 +128,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.atRisk.withValues(alpha: 0.2),
+                  color: _statusColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'AT RISK',
+                child: Text(
+                  _displayStatus.toUpperCase(),
                   style: TextStyle(
-                    color: AppColors.atRisk,
+                    color: _statusColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
