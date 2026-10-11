@@ -1,0 +1,12 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "mobile_dev_formative_assignment1",
+            "request": "launch",
+            "type": "dart",
+            "program": "lib/main.dart",
+            "cwd": "/Users/mac/Desktop/alu-university-stuff /year 2 /term3/Mobile application development/mobile_dev_formative_assignment1"
+        }
+    ]
+}

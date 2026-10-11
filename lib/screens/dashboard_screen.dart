@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 import '../app_routes.dart';
 import '../models/task.dart';
+import '../services/auth_storage.dart';
 import '../services/task_storage.dart';
 import '../widgets/navabar.dart';
 
@@ -19,17 +20,28 @@ class Dashboard extends StatefulWidget {
 
 class _DashboardState extends State<Dashboard> {
   final _taskStorage = TaskStorage();
+  final _authStorage = AuthStorage();
   List<Task> _savedTasks = [];
+  String _userName = 'User';
 
   @override
   void initState() {
     super.initState();
     _loadTasks();
+    _loadProfile();
   }
 
   Future<void> _loadTasks() async {
     final tasks = await _taskStorage.loadTasks();
     if (mounted) setState(() => _savedTasks = tasks);
+  }
+
+  Future<void> _loadProfile() async {
+    final name = await _authStorage.loadName();
+    if (!mounted) return;
+    setState(
+      () => _userName = name?.trim().isNotEmpty == true ? name!.trim() : 'User',
+    );
   }
 
   @override
@@ -77,6 +89,8 @@ class _DashboardState extends State<Dashboard> {
 
               if (!mounted) return;
               await _loadTasks();
+            } else if (index == 3) {
+              await Navigator.pushNamed(context, AppRoutes.teamProfile);
             }
           },
         ),
@@ -98,7 +112,7 @@ class _DashboardState extends State<Dashboard> {
               ),
               SizedBox(height: 4),
               Text(
-                'Good morning, Amina',
+                'Hello, $_userName!',
                 style: TextStyle(
                   color: _ink,
                   fontSize: 31,

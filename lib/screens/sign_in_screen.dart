@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../app_routes.dart';
 import 'password_recovery_screen.dart';
+import '../services/auth_storage.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -14,6 +17,7 @@ class _SignInScreenState extends State<SignInScreen> {
   final _passwordController = TextEditingController();
 
   bool _obscurePassword = true;
+  final _authStorage = AuthStorage();
 
   @override
   void dispose() {
@@ -162,14 +166,22 @@ class _SignInScreenState extends State<SignInScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
+                        final valid = await _authStorage.signIn(
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
+                        if (!mounted) return;
+                        if (valid) {
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRoutes.dashboard,
+                          );
+                        } else {
                           ScaffoldMessenger.of(context).showSnackBar(
                             const SnackBar(
-                              content: Text(
-                                'Form validated. '
-                                'Authentication is not connected yet.',
-                              ),
+                              content: Text('Incorrect email or password.'),
                             ),
                           );
                         }

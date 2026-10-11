@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 
+import '../app_routes.dart';
+import '../services/auth_storage.dart';
+
 class SignUpScreen extends StatefulWidget {
   const SignUpScreen({super.key});
 
@@ -16,6 +19,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
 
   bool _obscurePassword = true;
   bool _obscureConfirmPassword = true;
+  final _authStorage = AuthStorage();
 
   @override
   void dispose() {
@@ -107,9 +111,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       if (value == null || value.trim().isEmpty) {
                         return 'Please enter your email';
                       }
-                      if (!RegExp(
-                        r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                      ).hasMatch(value.trim())) {
+                      if (!RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$')
+                          .hasMatch(value.trim())) {
                         return 'Enter a valid email address';
                       }
                       return null;
@@ -205,14 +208,17 @@ class _SignUpScreenState extends State<SignUpScreen> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
-                              content: Text(
-                                'Form validated. Account creation is not connected yet.',
-                              ),
-                            ),
+                      onPressed: () async {
+                        if (!_formKey.currentState!.validate()) return;
+                        await _authStorage.register(
+                          name: _nameController.text,
+                          email: _emailController.text,
+                          password: _passwordController.text,
+                        );
+                        if (mounted) {
+                          Navigator.pushReplacementNamed(
+                            context,
+                            AppRoutes.dashboard,
                           );
                         }
                       },
@@ -233,7 +239,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                       const Flexible(child: Text("Already have an account?")),
                       TextButton(
                         onPressed: () {
-                          Navigator.pushNamed(context, '/');
+                          Navigator.pushNamed(context, AppRoutes.signIn);
                         },
                         child: const Text(
                           'Log In',

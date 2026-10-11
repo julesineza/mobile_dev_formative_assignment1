@@ -368,10 +368,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
           selectedIndex: 1,
           onItemSelected: (index) {
             if (index == 0) {
-              Navigator.popUntil(
-                context,
-                ModalRoute.withName(AppRoutes.dashboard),
-              );
+              Navigator.pushReplacementNamed(context, AppRoutes.dashboard);
+            } else if (index == 3) {
+              Navigator.pushNamed(context, AppRoutes.teamProfile);
             }
           },
         ),
