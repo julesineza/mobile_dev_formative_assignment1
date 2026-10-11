@@ -132,6 +132,17 @@ class _TaskListScreenState extends State<TaskListScreen> {
     await _loadTasks();
   }
 
+  String _taskDateLabel(Task task) {
+    if (task.status == 'Done') {
+      final completedAt = task.completedAt;
+      return completedAt == null
+          ? 'Completion date unavailable'
+          : 'Completed ${DateFormat('MMM d, yyyy').format(completedAt.toLocal())}';
+    }
+
+    return 'Due ${DateFormat('MMM d, yyyy').format(task.deadline)}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -286,7 +297,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                   (task) => TaskCard(
                     title: task.name,
                     details:
-                        '${task.description}\nDue ${DateFormat('MMM d, yyyy').format(task.deadline)}',
+                        '${task.description}\n${_taskDateLabel(task)}',
                     status: _isOverdue(task)
                         ? 'Overdue'
                         : _isAtRisk(task)

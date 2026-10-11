@@ -158,6 +158,11 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       priority: _priority,
       status: _status,
       assignees: _assignees.toList(),
+      completedAt: _status == 'Done'
+          ? existingTask?.status == 'Done'
+              ? existingTask?.completedAt
+              : DateTime.now()
+          : null,
     );
     _saveTask(task);
   }

@@ -6,6 +6,7 @@ class Task {
   final String priority;
   final String status;
   final List<String> assignees;
+  final DateTime? completedAt;
 
   const Task({
     required this.id,
@@ -15,6 +16,7 @@ class Task {
     required this.priority,
     required this.status,
     required this.assignees,
+    this.completedAt,
   });
 
   Task copyWith({
@@ -24,6 +26,7 @@ class Task {
     String? priority,
     String? status,
     List<String>? assignees,
+    DateTime? completedAt,
   }) {
     return Task(
       id: id,
@@ -33,6 +36,9 @@ class Task {
       priority: priority ?? this.priority,
       status: status ?? this.status,
       assignees: assignees ?? this.assignees,
+      completedAt: (status ?? this.status) == 'Done'
+          ? completedAt ?? this.completedAt
+          : null,
     );
   }
 
@@ -44,6 +50,7 @@ class Task {
     'priority': priority,
     'status': status,
     'assignees': assignees,
+    'completedAt': completedAt?.toIso8601String(),
   };
 
   factory Task.fromJson(Map<String, dynamic> json) {
@@ -55,6 +62,9 @@ class Task {
       priority: json['priority'] as String,
       status: json['status'] as String,
       assignees: List<String>.from(json['assignees'] as List<dynamic>),
+      completedAt: json['completedAt'] == null
+          ? null
+          : DateTime.parse(json['completedAt'] as String),
     );
   }
 }

@@ -77,7 +77,10 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     setState(() => _isSaving = true);
 
     try {
-      final completedTask = widget.task.copyWith(status: 'Done');
+      final completedTask = widget.task.copyWith(
+        status: 'Done',
+        completedAt: DateTime.now(),
+      );
       await _storage.saveTask(completedTask);
 
       if (!mounted) return;
