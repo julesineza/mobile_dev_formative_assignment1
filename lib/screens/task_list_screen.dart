@@ -166,7 +166,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                       ),
                       SizedBox(height: 4),
                       Text(
-                        'All tasks',
+                        selectedFilter == 'All' ? 'All tasks' : selectedFilter,
                         style: TextStyle(
                           color: AppColors.ink,
                           fontSize: 28,
@@ -296,8 +296,7 @@ class _TaskListScreenState extends State<TaskListScreen> {
                 ..._filteredTasks.map(
                   (task) => TaskCard(
                     title: task.name,
-                    details:
-                        '${task.description}\n${_taskDateLabel(task)}',
+                    details: '${task.description}\n${_taskDateLabel(task)}',
                     status: _isOverdue(task)
                         ? 'Overdue'
                         : _isAtRisk(task)
