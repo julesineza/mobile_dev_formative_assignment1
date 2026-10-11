@@ -135,6 +135,21 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _sprintCard() {
+    final completedTasks = _savedTasks
+        .where((task) => task.status == 'Done')
+        .length;
+    final totalTasks = _savedTasks.length;
+    final progress = totalTasks == 0 ? 0.0 : completedTasks / totalTasks;
+    final latestDeadline = _savedTasks.isEmpty
+        ? null
+        : _savedTasks
+              .map((task) => task.deadline)
+              .reduce(
+                (latest, deadline) =>
+                    deadline.isAfter(latest) ? deadline : latest,
+              );
+    final daysLeft = latestDeadline == null ? 0 : _daysUntil(latestDeadline);
+
     return Container(
       padding: const EdgeInsets.fromLTRB(26, 26, 26, 24),
       decoration: BoxDecoration(
@@ -161,16 +176,16 @@ class _DashboardState extends State<Dashboard> {
                   color: const Color(0xFF3B4740),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  '8 days left',
+                child: Text(
+                  '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left',
                   style: TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          const Text(
-            'Mobile app launch',
+          Text(
+            _savedTasks.isEmpty ? 'No tasks yet' : 'Task overview',
             style: TextStyle(
               color: Colors.white,
               fontSize: 26,
@@ -180,12 +195,12 @@ class _DashboardState extends State<Dashboard> {
           const SizedBox(height: 28),
           Row(
             children: [
-              const Expanded(
+              Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '65%',
+                      '${(progress * 100).round()}%',
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 48,
@@ -195,20 +210,20 @@ class _DashboardState extends State<Dashboard> {
                     ),
                     SizedBox(height: 8),
                     Text(
-                      '17 of 26 tasks completed',
+                      '$completedTasks of $totalTasks tasks completed',
                       style: TextStyle(color: _muted, fontSize: 15),
                     ),
                   ],
                 ),
               ),
-              _progressCircle(),
+              _progressCircle(progress),
             ],
           ),
           const SizedBox(height: 28),
           ClipRRect(
             borderRadius: BorderRadius.circular(10),
-            child: const LinearProgressIndicator(
-              value: .65,
+            child: LinearProgressIndicator(
+              value: progress,
               minHeight: 8,
               backgroundColor: Color(0xFF3B4740),
               valueColor: AlwaysStoppedAnimation(Color(0xFF9BDC72)),
@@ -219,21 +234,21 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _progressCircle() {
+  Widget _progressCircle(double progress) {
     return SizedBox(
       width: 74,
       height: 74,
       child: Stack(
         alignment: Alignment.center,
         children: [
-          const CircularProgressIndicator(
-            value: .65,
+          CircularProgressIndicator(
+            value: progress,
             strokeWidth: 5,
             backgroundColor: Color(0xFF3B4740),
             valueColor: AlwaysStoppedAnimation(Color(0xFF9BDC72)),
           ),
-          const Text(
-            '65',
+          Text(
+            '${(progress * 100).round()}',
             style: TextStyle(
               color: Colors.white,
               fontSize: 16,
@@ -246,15 +261,37 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _statusCards() {
+    final completedCount = _savedTasks
+        .where((task) => task.status == 'Done')
+        .length;
+    final inProgressCount = _savedTasks
+        .where((task) => task.status == 'In progress')
+        .length;
+    final overdueCount = _savedTasks
+        .where((task) => task.status != 'Done' && _isOverdue(task.deadline))
+        .length;
+
     return Row(
       children: [
-        _statusCard('17', 'Completed', const Color(0xFF65BE66)),
+        _statusCard('$completedCount', 'Completed', const Color(0xFF65BE66)),
         const SizedBox(width: 12),
-        _statusCard('05', 'At risk', const Color(0xFFE4AC20)),
+        _statusCard('$inProgressCount', 'At risk', const Color(0xFFE4AC20)),
         const SizedBox(width: 12),
-        _statusCard('03', 'Overdue', const Color(0xFFD94B40)),
+        _statusCard('$overdueCount', 'Overdue', const Color(0xFFD94B40)),
       ],
     );
+  }
+
+  bool _isOverdue(DateTime deadline) {
+    return DateUtils.dateOnly(deadline)
+        .isBefore(DateUtils.dateOnly(DateTime.now()));
+  }
+
+  int _daysUntil(DateTime deadline) {
+    final days = DateUtils.dateOnly(deadline)
+        .difference(DateUtils.dateOnly(DateTime.now()))
+        .inDays;
+    return days < 0 ? 0 : days;
   }
 
   Widget _statusCard(String number, String label, Color dotColor) {
@@ -307,7 +344,7 @@ class _DashboardState extends State<Dashboard> {
           children: [
             const Expanded(
               child: Text(
-                'Needs attention',
+                'working on',
                 style: TextStyle(
                   color: _ink,
                   fontSize: 24,
@@ -316,7 +353,9 @@ class _DashboardState extends State<Dashboard> {
               ),
             ),
             TextButton(
-              onPressed: () {},
+              onPressed: () {
+                Navigator.pushNamed(context, AppRoutes.tasks);
+              },
               child: const Text(
                 'See all',
                 style: TextStyle(color: _muted, fontSize: 14),
@@ -325,26 +364,12 @@ class _DashboardState extends State<Dashboard> {
           ],
         ),
         const SizedBox(height: 8),
-        if (_savedTasks.isEmpty) ...[
-          _taskCard(
-            status: 'At risk',
-            statusColor: const Color(0xFFE4AC20),
-            title: 'Finalize onboarding flow',
-            details: 'Design · Due today',
-            avatars: const [
-              _Avatar('AM', Color(0xFFA9DEC9)),
-              _Avatar('JK', Color(0xFFF4CF7D)),
-            ],
-          ),
-          const SizedBox(height: 16),
-          _taskCard(
-            status: 'Overdue',
-            statusColor: const Color(0xFFE85C50),
-            title: 'Fix payment API errors',
-            details: 'Development · 2 days late',
-            avatars: const [_Avatar('JK', Color(0xFFA9DEC9))],
-          ),
-        ] else
+        if (_savedTasks.isEmpty)
+          const Text(
+            'No saved tasks yet.',
+            style: TextStyle(color: _muted, fontSize: 16),
+          )
+        else
           ..._savedTasks.map(
             (task) => Padding(
               padding: const EdgeInsets.only(bottom: 16),
@@ -355,10 +380,14 @@ class _DashboardState extends State<Dashboard> {
                 details:
                     '${task.priority} priority · Due ${DateFormat('MMM d').format(task.deadline)}',
                 avatars: task.assignees
-                    .map((name) => _Avatar(
-                          name.substring(0, name.length >= 2 ? 2 : 1).toUpperCase(),
-                          const Color(0xFFA9DEC9),
-                        ))
+                    .map(
+                      (name) => _Avatar(
+                        name
+                            .substring(0, name.length >= 2 ? 2 : 1)
+                            .toUpperCase(),
+                        const Color(0xFFA9DEC9),
+                      ),
+                    )
                     .toList(),
                 onTap: () async {
                   await Navigator.pushNamed(
@@ -398,69 +427,69 @@ class _DashboardState extends State<Dashboard> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(26),
       child: Container(
-      padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: const Color(0xFFE0E4DE)),
-        borderRadius: BorderRadius.circular(26),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 7,
-                ),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: .2),
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor.withValues(alpha: .95),
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+        padding: const EdgeInsets.fromLTRB(20, 20, 16, 16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          border: Border.all(color: const Color(0xFFE0E4DE)),
+          borderRadius: BorderRadius.circular(26),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: statusColor.withValues(alpha: .2),
+                    borderRadius: BorderRadius.circular(18),
+                  ),
+                  child: Text(
+                    status,
+                    style: TextStyle(
+                      color: statusColor.withValues(alpha: .95),
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ),
-              ),
-              const Spacer(),
-              const Icon(Icons.more_horiz, color: _muted),
-            ],
-          ),
-          const SizedBox(height: 18),
-          Text(
-            title,
-            style: const TextStyle(
-              color: _ink,
-              fontSize: 20,
-              fontWeight: FontWeight.w600,
+                const Spacer(),
+                const Icon(Icons.more_horiz, color: _muted),
+              ],
             ),
-          ),
-          const SizedBox(height: 5),
-          Text(details, style: const TextStyle(color: _muted, fontSize: 16)),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              SizedBox(
-                width: 70,
-                height: 38,
-                child: Stack(
-                  children: [
-                    for (var i = 0; i < avatars.length; i++)
-                      Positioned(left: i * 28, child: _avatar(avatars[i])),
-                  ],
-                ),
+            const SizedBox(height: 18),
+            Text(
+              title,
+              style: const TextStyle(
+                color: _ink,
+                fontSize: 20,
+                fontWeight: FontWeight.w600,
               ),
-              const Spacer(),
-              const Icon(Icons.chevron_right, color: _muted, size: 28),
-            ],
-          ),
-        ],
-      ),
+            ),
+            const SizedBox(height: 5),
+            Text(details, style: const TextStyle(color: _muted, fontSize: 16)),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                SizedBox(
+                  width: 70,
+                  height: 38,
+                  child: Stack(
+                    children: [
+                      for (var i = 0; i < avatars.length; i++)
+                        Positioned(left: i * 28, child: _avatar(avatars[i])),
+                    ],
+                  ),
+                ),
+                const Spacer(),
+                const Icon(Icons.chevron_right, color: _muted, size: 28),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
