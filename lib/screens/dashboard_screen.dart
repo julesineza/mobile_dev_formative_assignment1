@@ -73,9 +73,11 @@ class _DashboardState extends State<Dashboard> {
         child: Navbar(
           selectedIndex: currentScreen,
           onItemSelected: (index) {
-            setState(() {
-              currentScreen = index;
-            });
+            if (index == 3) {
+              Navigator.pushReplacementNamed(context, AppRoutes.teamProfile);
+            } else {
+              setState(() => currentScreen = index);
+            }
           },
         ),
       ),
