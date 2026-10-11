@@ -7,9 +7,10 @@ import 'screens/sign_in_screen.dart';
 import 'screens/sign_up_screen.dart';
 import 'screens/task_details_screen.dart';
 import 'screens/task_list_screen.dart';
+import 'screens/team_profile_screen.dart';
 
 class AppRoutes {
-  static const String signIn = '/';
+  static const String signIn = '/sign-in';
   static const String signUp = '/sign-up';
   static const String dashboard = '/dashboard';
   static const String tasks = '/tasks';
@@ -39,7 +40,10 @@ class AppRoutes {
 
     // Task list
     tasks: (context) => const TaskListScreen(),
-    taskDetails: (context) => const TaskDetailsScreen(),
+    teamProfile: (context) => const TeamProfileScreen(),
+    taskDetails: (context) => TaskDetailsScreen(
+      task: ModalRoute.of(context)!.settings.arguments as Task,
+    ),
     // createTask: (context) => const TaskFormScreen(),
     // editTask: (context) => const TaskFormScreen(),
     // teamProfile: (context) => const TeamProfileScreen(),
