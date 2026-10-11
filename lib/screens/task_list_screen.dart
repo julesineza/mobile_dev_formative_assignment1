@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 
+import '../models/task.dart';
+import '../services/task_storage.dart';
 import '../theme/app_colors.dart';
 import '../widgets/navabar.dart';
 import '../widgets/task_card.dart';
 import '../app_routes.dart';
+
+import 'package:intl/intl.dart';
 
 class TaskListScreen extends StatefulWidget {
   const TaskListScreen({super.key});
@@ -14,191 +18,319 @@ class TaskListScreen extends StatefulWidget {
 
 class _TaskListScreenState extends State<TaskListScreen> {
   String selectedFilter = 'All';
+  final _storage = TaskStorage();
+  List<Task> _tasks = [];
+  bool _isLoading = true;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTasks();
+  }
+
+  bool _isAtRisk(Task task) {
+    final now = DateTime.now();
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+    return task.status != 'Done' && task.deadline.isBefore(tomorrow);
+  }
+
+  bool _isOverdue(Task task) {
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+
+    return task.status != 'Done' && task.deadline.isBefore(today);
+  }
+
+  List<Task> get _filteredTasks {
+    if (selectedFilter == 'At risk') {
+      return _tasks.where(_isAtRisk).toList();
+    }
+
+    if (selectedFilter == 'Completed') {
+      return _tasks.where((task) => task.status == 'Done').toList();
+    }
+
+    return _tasks;
+  }
+
+  Future<void> _loadTasks() async {
+    if (!mounted) return;
+
+    setState(() {
+      _isLoading = true;
+      _loadError = null;
+    });
+
+    try {
+      final tasks = await _storage.loadTasks();
+
+      if (!mounted) return;
+
+      setState(() {
+        _tasks = tasks;
+        _isLoading = false;
+      });
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
+        _loadError = 'Could not load your tasks. Please try again.';
+      });
+    }
+  }
+
+  Future<void> _editTask(Task task) async {
+    await Navigator.pushNamed(context, AppRoutes.editTask, arguments: task);
+
+    if (!mounted) return;
+    await _loadTasks();
+  }
+
+  Future<void> _deleteTask(Task task) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete task?'),
+        content: Text('Delete "${task.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !mounted) return;
+
+    try {
+      await _storage.deleteTask(task.id);
+
+      if (!mounted) return;
+      await _loadTasks();
+    } catch (error) {
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete the task. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _openTaskDetails(Task task) async {
+    await Navigator.pushNamed(context, AppRoutes.taskDetails, arguments: task);
+
+    if (!mounted) return;
+    await _loadTasks();
+  }
+
+  String _taskDateLabel(Task task) {
+    if (task.status == 'Done') {
+      final completedAt = task.completedAt;
+      return completedAt == null
+          ? 'Completion date unavailable'
+          : 'Completed ${DateFormat('MMM d, yyyy').format(completedAt.toLocal())}';
+    }
+
+    return 'Due ${DateFormat('MMM d, yyyy').format(task.deadline)}';
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.pageBackground,
       body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.all(24),
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Sprint 04',
-                      style: TextStyle(color: AppColors.muted, fontSize: 14),
+        child: RefreshIndicator(
+          onRefresh: _loadTasks,
+          child: ListView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Sprint',
+                        style: TextStyle(color: AppColors.muted, fontSize: 14),
+                      ),
+                      SizedBox(height: 4),
+                      Text(
+                        'All tasks',
+                        style: TextStyle(
+                          color: AppColors.ink,
+                          fontSize: 28,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ],
+                  ),
+                  IconButton.filledTonal(
+                    onPressed: () {},
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppColors.softBackground,
+                      foregroundColor: AppColors.ink,
+                      fixedSize: const Size(50, 50),
+                      shape: const CircleBorder(),
                     ),
-                    SizedBox(height: 4),
-                    Text(
-                      'All tasks',
-                      style: TextStyle(
-                        color: AppColors.ink,
-                        fontSize: 28,
-                        fontWeight: FontWeight.w700,
+                    icon: const Icon(Icons.notifications_outlined, size: 26),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  spacing: 8,
+                  children: [
+                    ChoiceChip(
+                      label: const Text('All'),
+                      selected: selectedFilter == 'All',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'All';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'All'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('My tasks'),
+                      selected: selectedFilter == 'My tasks',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'My tasks';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'My tasks'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('At risk'),
+                      selected: selectedFilter == 'At risk',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'At risk';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'At risk'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    ChoiceChip(
+                      label: const Text('Completed'),
+                      selected: selectedFilter == 'Completed',
+                      onSelected: (selected) {
+                        setState(() {
+                          selectedFilter = 'Completed';
+                        });
+                      },
+                      showCheckmark: false,
+                      selectedColor: AppColors.ink,
+                      backgroundColor: AppColors.softBackground,
+                      side: BorderSide.none,
+                      shape: const StadiumBorder(),
+                      labelStyle: TextStyle(
+                        color: selectedFilter == 'Completed'
+                            ? AppColors.white
+                            : AppColors.muted,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
                 ),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.softBackground,
-                    foregroundColor: AppColors.ink,
-                    fixedSize: const Size(50, 50),
-                    shape: const CircleBorder(),
-                  ),
-                  icon: const Icon(Icons.notifications_outlined, size: 26),
-                ),
-              ],
-            ),
-            const SizedBox(height: 20),
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                spacing: 8,
-                children: [
-                  ChoiceChip(
-                    label: const Text('All'),
-                    selected: selectedFilter == 'All',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'All';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'All'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: const Text('My tasks'),
-                    selected: selectedFilter == 'My tasks',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'My tasks';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'My tasks'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: const Text('At risk'),
-                    selected: selectedFilter == 'At risk',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'At risk';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'At risk'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  ChoiceChip(
-                    label: const Text('Completed'),
-                    selected: selectedFilter == 'Completed',
-                    onSelected: (selected) {
-                      setState(() {
-                        selectedFilter = 'Completed';
-                      });
-                    },
-                    showCheckmark: false,
-                    selectedColor: AppColors.ink,
-                    backgroundColor: AppColors.softBackground,
-                    side: BorderSide.none,
-                    shape: const StadiumBorder(),
-                    labelStyle: TextStyle(
-                      color: selectedFilter == 'Completed'
-                          ? AppColors.white
-                          : AppColors.muted,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
               ),
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              'TODAY · 2 TASKS',
-              style: TextStyle(color: Color(0xFF7C8883), fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            TaskCard(
-              title: 'Finalize onboarding flow',
-              details: 'Design · Due 4:00 PM',
-              status: 'At risk',
-              statusColor: AppColors.atRisk,
-              avatars: const [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-              onTap: () => Navigator.pushNamed(context, AppRoutes.taskDetails),
-            ),
-            const TaskCard(
-              title: 'Reciew empty states',
-              details: 'Design · Due 6:00 PM',
-              status: 'On track',
-              statusColor: AppColors.onTrack,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              'EARLIER',
-              style: TextStyle(color: AppColors.muted, fontSize: 12),
-            ),
-            const SizedBox(height: 12),
-            const TaskCard(
-              title: 'Finalize onboarding flow',
-              details: 'Design · Due 4:00 PM',
-              status: 'Overdue',
-              statusColor: AppColors.overdue,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
-            TaskCard(
-              title: 'Prepare Release Notes',
-              details: 'Product · Completed 2 days ago',
-              status: 'Completed',
-              statusColor: AppColors.completed,
-              avatars: [
-                TaskAvatar('AM', AppColors.avatarMint),
-                TaskAvatar('JK', AppColors.avatarGold),
-              ],
-            ),
-          ],
+              const SizedBox(height: 20),
+              if (_isLoading)
+                const Center(child: CircularProgressIndicator())
+              else if (_loadError != null)
+                Column(
+                  children: [
+                    Text(_loadError!),
+                    const SizedBox(height: 8),
+                    TextButton(
+                      onPressed: () => _loadTasks(),
+                      child: const Text('Retry'),
+                    ),
+                  ],
+                )
+              else if (_filteredTasks.isEmpty)
+                const Text('No tasks match this filter.')
+              else
+                ..._filteredTasks.map(
+                  (task) => TaskCard(
+                    title: task.name,
+                    details:
+                        '${task.description}\n${_taskDateLabel(task)}',
+                    status: _isOverdue(task)
+                        ? 'Overdue'
+                        : _isAtRisk(task)
+                        ? 'At risk'
+                        : task.status,
+                    statusColor: task.status == 'Done'
+                        ? AppColors.completed
+                        : _isOverdue(task)
+                        ? AppColors.overdue
+                        : _isAtRisk(task)
+                        ? AppColors.atRisk
+                        : AppColors.onTrack,
+                    avatars: [
+                      for (int i = 0; i < task.assignees.length; i++)
+                        TaskAvatar(
+                          task.assignees[i]
+                              .trim()
+                              .toUpperCase()
+                              .characters
+                              .take(2)
+                              .toString(),
+                          i.isEven
+                              ? AppColors.avatarMint
+                              : AppColors.avatarGold,
+                        ),
+                    ],
+                    onTap: () => _openTaskDetails(task),
+                    onEdit: () => _editTask(task),
+                    onDelete: () => _deleteTask(task),
+                  ),
+                ),
+            ],
+          ),
         ),
       ),
       bottomNavigationBar: Padding(

@@ -7,6 +7,8 @@ class TaskCard extends StatelessWidget {
   final Color statusColor;
   final List<TaskAvatar> avatars;
   final VoidCallback? onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
   const TaskCard({
     super.key,
@@ -16,6 +18,8 @@ class TaskCard extends StatelessWidget {
     required this.statusColor,
     required this.avatars,
     this.onTap,
+    this.onEdit,
+    this.onDelete,
   });
 
   @override
@@ -57,7 +61,28 @@ class TaskCard extends StatelessWidget {
                       ),
                     ),
                     const Spacer(),
-                    const Icon(Icons.more_horiz, color: Color(0xFF7C8883)),
+                    PopupMenuButton<String>(
+                      icon: const Icon(
+                        Icons.more_horiz,
+                        color: Color(0xFF7C8883),
+                      ),
+                      onSelected: (action) {
+                        if (action == 'edit') onEdit?.call();
+                        if (action == 'delete') onDelete?.call();
+                      },
+                      itemBuilder: (context) => [
+                        if (onEdit != null)
+                          const PopupMenuItem(
+                            value: 'edit',
+                            child: Text('Edit'),
+                          ),
+                        if (onDelete != null)
+                          const PopupMenuItem(
+                            value: 'delete',
+                            child: Text('Delete'),
+                          ),
+                      ],
+                    ),
                   ],
                 ),
                 const SizedBox(height: 16),
