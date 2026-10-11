@@ -18,7 +18,6 @@ class Dashboard extends StatefulWidget {
 }
 
 class _DashboardState extends State<Dashboard> {
-  int currentScreen = 0;
   final _taskStorage = TaskStorage();
   List<Task> _savedTasks = [];
 
@@ -71,11 +70,14 @@ class _DashboardState extends State<Dashboard> {
       bottomNavigationBar: Padding(
         padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
         child: Navbar(
-          selectedIndex: currentScreen,
-          onItemSelected: (index) {
-            setState(() {
-              currentScreen = index;
-            });
+          selectedIndex: 0,
+          onItemSelected: (index) async {
+            if (index == 1) {
+              await Navigator.pushNamed(context, AppRoutes.tasks);
+
+              if (!mounted) return;
+              await _loadTasks();
+            }
           },
         ),
       ),
