@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../models/task.dart';
+import '../services/task_storage.dart';
+
+import 'package:intl/intl.dart';
 
 class TaskDetailsScreen extends StatefulWidget {
-  const TaskDetailsScreen({super.key});
+  final Task task;
+
+  const TaskDetailsScreen({super.key, required this.task});
 
   @override
   State<TaskDetailsScreen> createState() => _TaskDetailsScreenState();
 }
 
 class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
-  final List<String> _checklistTitles = [
-    'Map the happy path',
-    'Design account setup',
-    'Add validation states',
-    'Create handoff notes',
-    'Final team review',
-  ];
-
-  final List<bool> _checklistCompleted = [true, true, true, false, false];
-
-  int get _completedCount =>
-      _checklistCompleted.where((completed) => completed).length;
+  final _storage = TaskStorage();
+  bool _isSaving = false;
 
   Widget _infoRow({
     required IconData icon,
@@ -52,6 +48,99 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     );
   }
 
+  String get _displayStatus {
+    final task = widget.task;
+
+    if (task.status == 'Done') return 'Done';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final tomorrow = DateTime(now.year, now.month, now.day + 1);
+
+    if (task.deadline.isBefore(today)) return 'Overdue';
+    if (task.deadline.isBefore(tomorrow)) return 'At risk';
+
+    return task.status;
+  }
+
+  Color get _statusColor {
+    if (_displayStatus == 'Done') return AppColors.completed;
+    if (_displayStatus == 'Overdue') return AppColors.overdue;
+    if (_displayStatus == 'At risk') return AppColors.atRisk;
+
+    return AppColors.onTrack;
+  }
+
+  Future<void> _markAsComplete() async {
+    if (_isSaving || widget.task.status == 'Done') return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      final completedTask = widget.task.copyWith(
+        status: 'Done',
+        completedAt: DateTime.now(),
+      );
+      await _storage.saveTask(completedTask);
+
+      if (!mounted) return;
+      Navigator.pop(context, completedTask);
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() => _isSaving = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not complete the task. Please try again.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _deleteTask() async {
+    if (_isSaving) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete task?'),
+        content: Text('Delete "${widget.task.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted || _isSaving) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      await _storage.deleteTask(widget.task.id);
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() => _isSaving = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete the task. Please try again.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,14 +169,22 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.softBackground,
-                    foregroundColor: AppColors.ink,
-                    shape: const CircleBorder(),
+                PopupMenuButton<String>(
+                  enabled: !_isSaving,
+                  icon: const Icon(
+                    Icons.more_horiz,
+                    color: AppColors.ink,
+                    size: 20,
                   ),
-                  icon: const Icon(Icons.more_horiz, size: 20),
+                  onSelected: (action) {
+                    if (action == 'delete') _deleteTask();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text('Delete'),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -100,13 +197,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   vertical: 5,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.atRisk.withValues(alpha: 0.2),
+                  color: _statusColor.withValues(alpha: 0.2),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Text(
-                  'AT RISK',
+                child: Text(
+                  _displayStatus.toUpperCase(),
                   style: TextStyle(
-                    color: AppColors.atRisk,
+                    color: _statusColor,
                     fontSize: 11,
                     fontWeight: FontWeight.w600,
                   ),
@@ -114,9 +211,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'Finalize onboarding flow',
-              style: TextStyle(
+            Text(
+              widget.task.name,
+              style: const TextStyle(
                 color: AppColors.ink,
                 fontSize: 26,
                 fontWeight: FontWeight.w700,
@@ -124,10 +221,9 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
               ),
             ),
             const SizedBox(height: 14),
-            const Text(
-              'Complete the final screens and handoff notes for '
-              'the new account onboarding experience.',
-              style: TextStyle(
+            Text(
+              widget.task.description,
+              style: const TextStyle(
                 color: AppColors.muted,
                 fontSize: 14,
                 height: 1.5,
@@ -146,110 +242,31 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                   _infoRow(
                     icon: Icons.calendar_month_outlined,
                     label: 'Deadline',
-                    value: 'Today, 4:00 PM',
+                    value: DateFormat('MMM d, yyyy')
+                        .format(widget.task.deadline),
                   ),
                   const Divider(height: 28, color: Color(0xFFE3E7DF)),
                   _infoRow(
                     icon: Icons.account_circle_outlined,
                     label: 'Assigned to',
-                    value: 'Amina & Jonas',
+                    value: widget.task.assignees.isEmpty
+                        ? 'Unassigned'
+                        : widget.task.assignees.join(', '),
                   ),
                   const Divider(height: 28, color: Color(0xFFE3E7DF)),
                   _infoRow(
                     icon: Icons.access_time,
                     label: 'Priority',
-                    value: 'High',
+                    value: widget.task.priority,
                   ),
                 ],
               ),
             ),
             const SizedBox(height: 24),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Progress',
-                  style: TextStyle(
-                    color: AppColors.ink,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                Text(
-                  '$_completedCount of ${_checklistTitles.length}',
-                  style: const TextStyle(color: AppColors.muted, fontSize: 12),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-
-            for (int index = 0; index < _checklistTitles.length; index++)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Material(
-                  color: AppColors.pageBackground,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    side: const BorderSide(color: Color(0xFFE3E7DF)),
-                  ),
-                  clipBehavior: Clip.antiAlias,
-                  child: InkWell(
-                    onTap: () {
-                      setState(() {
-                        _checklistCompleted[index] =
-                            !_checklistCompleted[index];
-                      });
-                    },
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 14,
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            _checklistCompleted[index]
-                                ? Icons.check_circle
-                                : Icons.circle_outlined,
-                            color: _checklistCompleted[index]
-                                ? AppColors.ink
-                                : const Color(0xFFE3E7DF),
-                            size: 22,
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Text(
-                              _checklistTitles[index],
-                              style: TextStyle(
-                                color: _checklistCompleted[index]
-                                    ? AppColors.muted
-                                    : AppColors.ink,
-                                fontSize: 14,
-                                decoration: _checklistCompleted[index]
-                                    ? TextDecoration.lineThrough
-                                    : TextDecoration.none,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            const SizedBox(height: 10),
             FilledButton.icon(
-              onPressed: () {
-                setState(() {
-                  for (
-                    int index = 0;
-                    index < _checklistCompleted.length;
-                    index++
-                  ) {
-                    _checklistCompleted[index] = true;
-                  }
-                });
-              },
+              onPressed: _isSaving || widget.task.status == 'Done'
+                  ? null
+                  : () => _markAsComplete(),
               style: FilledButton.styleFrom(
                 backgroundColor: AppColors.ink,
                 foregroundColor: AppColors.white,
@@ -257,9 +274,13 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                 shape: const StadiumBorder(),
               ),
               icon: const Icon(Icons.check_circle_outline, size: 20),
-              label: const Text(
-                'Mark as complete',
-                style: TextStyle(fontWeight: FontWeight.w600),
+              label: Text(
+                _isSaving
+                    ? 'Saving...'
+                    : widget.task.status == 'Done'
+                    ? 'Completed'
+                    : 'Mark as complete',
+                style: const TextStyle(fontWeight: FontWeight.w600),
               ),
             ),
           ],
