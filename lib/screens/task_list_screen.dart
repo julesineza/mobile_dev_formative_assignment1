@@ -143,6 +143,34 @@ class _TaskListScreenState extends State<TaskListScreen> {
     return 'Due ${DateFormat('MMM d, yyyy').format(task.deadline)}';
   }
 
+  Future<void> _showTaskAlerts() async {
+    final alerts = _tasks.where(_isAtRisk).toList();
+
+    final task = await showModalBottomSheet<Task>(
+      context: context,
+      builder: (context) => SafeArea(
+        child: SizedBox(
+          height: MediaQuery.sizeOf(context).height * 0.5,
+          child: ListView(
+            padding: const EdgeInsets.all(24),
+            children: [
+              if (alerts.isEmpty) const ListTile(title: Text('No task alerts')),
+              for (final task in alerts)
+                ListTile(
+                  title: Text(task.name),
+                  subtitle: Text(_isOverdue(task) ? 'Overdue' : 'Due today'),
+                  onTap: () => Navigator.pop(context, task),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+
+    if (!mounted || task == null) return;
+    await _openTaskDetails(task);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -176,7 +204,9 @@ class _TaskListScreenState extends State<TaskListScreen> {
                     ],
                   ),
                   IconButton.filledTonal(
-                    onPressed: () {},
+                    onPressed: _isLoading || _loadError != null
+                        ? null
+                        : () => _showTaskAlerts(),
                     style: IconButton.styleFrom(
                       backgroundColor: AppColors.softBackground,
                       foregroundColor: AppColors.ink,
