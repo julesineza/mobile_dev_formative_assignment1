@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 import '../app_routes.dart';
@@ -31,9 +30,9 @@ class Navbar extends StatelessWidget {
 
             _navItem(icon: Icons.checklist, index: 1),
 
-          _addButton(context),
-
             _navItem(icon: Icons.people_outline, index: 3),
+
+            _addButton(context),
 
             // _navItem(icon: Icons.chat_bubble_outline, index: 4),
           ],
@@ -66,14 +65,24 @@ class Navbar extends StatelessWidget {
   Widget _addButton(BuildContext context) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, AppRoutes.addTask),
-      child: Container(
-        width: 60,
-        height: 60,
-        decoration: const BoxDecoration(
-          color: Color.fromARGB(255, 201, 170, 83),
-          shape: BoxShape.circle,
+      child: Transform.translate(
+        offset: const Offset(0, -20),
+        child: Container(
+          width: 72,
+          height: 72,
+          decoration: const BoxDecoration(
+            color: Color.fromARGB(255, 201, 170, 83),
+            shape: BoxShape.circle,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black26,
+                blurRadius: 8,
+                offset: Offset(0, 4),
+              ),
+            ],
+          ),
+          child: const Icon(Icons.add, size: 36, color: Color(0xFF111B18)),
         ),
-        child: const Icon(Icons.add, size: 32, color: Color(0xFF111B18)),
       ),
     );
   }
