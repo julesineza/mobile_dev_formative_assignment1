@@ -145,56 +145,109 @@ class _TeamProfileScreenState extends State<TeamProfileScreen> {
 
   Widget _profileCard() {
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: AppColors.ink,
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFF1F3F2), Color(0xFFE4E8E6)],
+          stops: [0.0, 0.5, 1.0],
+        ),
         borderRadius: BorderRadius.circular(30),
+        border: Border.all(color: Color(0xFFD3DAD6)),
       ),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              _avatar(_initials(_userName), AppColors.avatarMint, 72),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      _userName,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontFamily: '.SF Pro Display',
-                        color: Colors.white,
-                        fontSize: 24,
-                        fontWeight: FontWeight.w700,
-                      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(30),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: const Alignment(-1, .15),
+                      end: const Alignment(1, -.1),
+                      colors: [
+                        Colors.transparent,
+                        const Color(0xFF9CA9A4).withValues(alpha: .12),
+                        Colors.transparent,
+                        const Color(0xFFB7C1BD).withValues(alpha: .1),
+                        Colors.transparent,
+                      ],
+                      stops: const [0, .28, .43, .68, 1],
                     ),
-                    SizedBox(height: 6),
-                    Text(
-                      'Product designer · Kigali',
-                      style: TextStyle(
-                        fontFamily: '.SF Pro Text',
-                        color: AppColors.muted,
-                        fontSize: 14,
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 30),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              _Metric('${_tasks.length}', 'Tasks'),
-              _Metric('${_onTimePercentage()}%', 'On time'),
-              const _Metric('0', 'Projects'),
-            ],
-          ),
-        ],
+            ),
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: const Alignment(-.4, -1),
+                      end: const Alignment(.55, 1),
+                      colors: [
+                        Colors.transparent,
+                        const Color(0xFF7F8E87).withValues(alpha: .1),
+                        Colors.transparent,
+                      ],
+                      stops: const [.2, .48, .75],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      _avatar(_initials(_userName), AppColors.avatarMint, 72),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              _userName,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontFamily: '.SF Pro Display',
+                                color: AppColors.ink,
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
+                            SizedBox(height: 6),
+                            Text(
+                              'Product designer · Kigali',
+                              style: TextStyle(
+                                fontFamily: '.SF Pro Text',
+                                color: AppColors.muted,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 30),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _Metric('${_tasks.length}', 'Tasks'),
+                      _Metric('${_onTimePercentage()}%', 'On time'),
+                      const _Metric('0', 'Projects'),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -317,7 +370,7 @@ class _Metric extends StatelessWidget {
           value,
           style: const TextStyle(
             fontFamily: '.SF Pro Display',
-            color: Colors.white,
+            color: AppColors.ink,
             fontSize: 22,
             fontWeight: FontWeight.w600,
           ),

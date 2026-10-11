@@ -71,7 +71,7 @@ class Navbar extends StatelessWidget {
           width: 72,
           height: 72,
           decoration: const BoxDecoration(
-            color: Color.fromARGB(255, 201, 170, 83),
+            color: Color.fromARGB(255, 42, 202, 217),
             shape: BoxShape.circle,
             boxShadow: [
               BoxShadow(

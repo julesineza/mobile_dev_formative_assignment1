@@ -67,7 +67,6 @@ class _DashboardState extends State<Dashboard> {
                 const SizedBox(height: 20),
                 _welcomeHeader(formattedDate),
                 const SizedBox(height: 24),
-                _searchBar(),
                 const SizedBox(height: 30),
                 _sprintCard(),
                 const SizedBox(height: 30),
@@ -127,29 +126,6 @@ class _DashboardState extends State<Dashboard> {
     );
   }
 
-  Widget _searchBar() {
-    return Container(
-      height: 58,
-      padding: const EdgeInsets.symmetric(horizontal: 18),
-      decoration: BoxDecoration(
-        color: const Color(0xFFEEF0E9),
-        borderRadius: BorderRadius.circular(30),
-      ),
-      child: const Row(
-        children: [
-          Icon(Icons.search, color: _muted, size: 30),
-          SizedBox(width: 14),
-          Expanded(
-            child: Text(
-              'Search projects or tasks',
-              style: TextStyle(color: _muted, fontSize: 18),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _sprintCard() {
     final completedTasks = _savedTasks
         .where((task) => task.status == 'Done')
@@ -167,85 +143,138 @@ class _DashboardState extends State<Dashboard> {
     final daysLeft = latestDeadline == null ? 0 : _daysUntil(latestDeadline);
 
     return Container(
-      padding: const EdgeInsets.fromLTRB(26, 26, 26, 24),
       decoration: BoxDecoration(
-        color: const Color.fromRGBO(23, 32, 27, 1),
+        gradient: const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [Color(0xFFFFFFFF), Color(0xFFF1F3F2), Color(0xFFE4E8E6)],
+          stops: [0.0, 0.52, 1.0],
+        ),
         borderRadius: BorderRadius.circular(34),
+        border: Border.all(color: const Color(0xFFD3DAD6)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Expanded(
-                child: Text(
-                  'CURRENT SPRINT',
-                  style: TextStyle(color: _muted, fontSize: 14),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(34),
+        child: Stack(
+          children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: const Alignment(-1, .15),
+                      end: const Alignment(1, -.1),
+                      colors: [
+                        Colors.transparent,
+                        const Color(0xFF9CA9A4).withValues(alpha: .12),
+                        Colors.transparent,
+                        const Color(0xFFB7C1BD).withValues(alpha: .1),
+                        Colors.transparent,
+                      ],
+                      stops: const [0, .28, .43, .68, 1],
+                    ),
+                  ),
                 ),
               ),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF3B4740),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left',
-                  style: TextStyle(color: Colors.white70, fontSize: 14),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _savedTasks.isEmpty ? 'No tasks yet' : 'Task overview',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 26,
-              fontWeight: FontWeight.w600,
             ),
-          ),
-          const SizedBox(height: 28),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '${(progress * 100).round()}%',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 48,
-                        fontWeight: FontWeight.w700,
-                        height: 1,
+            Positioned.fill(
+              child: IgnorePointer(
+                child: DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: const Alignment(-.4, -1),
+                      end: const Alignment(.55, 1),
+                      colors: [
+                        Colors.transparent,
+                        const Color(0xFF7F8E87).withValues(alpha: .1),
+                        Colors.transparent,
+                      ],
+                      stops: const [.2, .48, .75],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(26, 26, 26, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Expanded(
+                        child: Text(
+                          'CURRENT SPRINT',
+                          style: TextStyle(color: _muted, fontSize: 14),
+                        ),
                       ),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE0E7E3),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          '$daysLeft ${daysLeft == 1 ? 'day' : 'days'} left',
+                          style: TextStyle(color: _ink, fontSize: 14),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    _savedTasks.isEmpty ? 'No tasks yet' : 'Task overview',
+                    style: TextStyle(
+                      color: _ink,
+                      fontSize: 26,
+                      fontWeight: FontWeight.w600,
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      '$completedTasks of $totalTasks tasks completed',
-                      style: TextStyle(color: _muted, fontSize: 15),
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${(progress * 100).round()}%',
+                              style: TextStyle(
+                                color: _ink,
+                                fontSize: 48,
+                                fontWeight: FontWeight.w700,
+                                height: 1,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '$completedTasks of $totalTasks tasks completed',
+                              style: TextStyle(color: _muted, fontSize: 15),
+                            ),
+                          ],
+                        ),
+                      ),
+                      _progressCircle(progress),
+                    ],
+                  ),
+                  const SizedBox(height: 28),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(10),
+                    child: LinearProgressIndicator(
+                      value: progress,
+                      minHeight: 8,
+                      backgroundColor: Color(0xFFD7E0DB),
+                      valueColor: AlwaysStoppedAnimation(Color(0xFF6E9F7D)),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
-              _progressCircle(progress),
-            ],
-          ),
-          const SizedBox(height: 28),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: progress,
-              minHeight: 8,
-              backgroundColor: Color(0xFF3B4740),
-              valueColor: AlwaysStoppedAnimation(Color(0xFF9BDC72)),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -260,13 +289,13 @@ class _DashboardState extends State<Dashboard> {
           CircularProgressIndicator(
             value: progress,
             strokeWidth: 5,
-            backgroundColor: Color(0xFF3B4740),
-            valueColor: AlwaysStoppedAnimation(Color(0xFF9BDC72)),
+            backgroundColor: Color(0xFFD7E0DB),
+            valueColor: AlwaysStoppedAnimation(Color(0xFF6E9F7D)),
           ),
           Text(
             '${(progress * 100).round()}',
             style: TextStyle(
-              color: Colors.white,
+              color: _ink,
               fontSize: 16,
               fontWeight: FontWeight.w600,
             ),
@@ -326,8 +355,8 @@ class _DashboardState extends State<Dashboard> {
             Row(
               children: [
                 Container(
-                  width: 30,
-                  height: 30,
+                  width: 1,
+                  height: 1,
                   decoration: BoxDecoration(
                     color: dotColor,
                     shape: BoxShape.circle,
@@ -353,6 +382,9 @@ class _DashboardState extends State<Dashboard> {
   }
 
   Widget _attentionSection() {
+    final visibleTasks = [..._savedTasks]
+      ..sort((first, second) => first.deadline.compareTo(second.deadline));
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -360,7 +392,7 @@ class _DashboardState extends State<Dashboard> {
           children: [
             const Expanded(
               child: Text(
-                'working on',
+                'Working On',
                 style: TextStyle(
                   color: _ink,
                   fontSize: 24,
@@ -386,36 +418,46 @@ class _DashboardState extends State<Dashboard> {
             style: TextStyle(color: _muted, fontSize: 16),
           )
         else
-          ..._savedTasks.map(
-            (task) => Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: _taskCard(
-                status: task.status,
-                statusColor: _statusColor(task.status),
-                title: task.name,
-                details:
-                    '${task.priority} priority · Due ${DateFormat('MMM d').format(task.deadline)}',
-                avatars: task.assignees
-                    .map(
-                      (name) => _Avatar(
-                        name
-                            .substring(0, name.length >= 2 ? 2 : 1)
-                            .toUpperCase(),
-                        const Color(0xFFA9DEC9),
-                      ),
-                    )
-                    .toList(),
-                onTap: () async {
-                  await Navigator.pushNamed(
-                    context,
-                    AppRoutes.editTask,
-                    arguments: task,
-                  );
-                  _loadTasks();
-                },
+          ...visibleTasks
+              .take(3)
+              .map(
+                (task) => Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: _taskCard(
+                    status: task.status,
+                    statusColor: _statusColor(task.status),
+                    title: task.name,
+                    details:
+                        '${task.priority} priority · Due ${DateFormat('MMM d').format(task.deadline)}',
+                    avatars: task.assignees
+                        .map(
+                          (name) => _Avatar(
+                            name
+                                .substring(0, name.length >= 2 ? 2 : 1)
+                                .toUpperCase(),
+                            const Color(0xFFA9DEC9),
+                          ),
+                        )
+                        .toList(),
+                    onTap: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        AppRoutes.taskDetails,
+                        arguments: task,
+                      );
+                      if (mounted) await _loadTasks();
+                    },
+                    onMore: () async {
+                      await Navigator.pushNamed(
+                        context,
+                        AppRoutes.editTask,
+                        arguments: task,
+                      );
+                      if (mounted) await _loadTasks();
+                    },
+                  ),
+                ),
               ),
-            ),
-          ),
       ],
     );
   }
@@ -438,6 +480,7 @@ class _DashboardState extends State<Dashboard> {
     required String details,
     required List<_Avatar> avatars,
     VoidCallback? onTap,
+    VoidCallback? onMore,
   }) {
     return InkWell(
       onTap: onTap,
@@ -473,7 +516,20 @@ class _DashboardState extends State<Dashboard> {
                   ),
                 ),
                 const Spacer(),
-                const Icon(Icons.more_horiz, color: _muted),
+                PopupMenuButton<String>(
+                  tooltip: 'Task actions',
+                  padding: EdgeInsets.zero,
+                  icon: const Icon(Icons.more_horiz, color: _muted),
+                  onSelected: (action) {
+                    if (action == 'edit') onMore?.call();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Text('Edit task'),
+                    ),
+                  ],
+                ),
               ],
             ),
             const SizedBox(height: 18),
