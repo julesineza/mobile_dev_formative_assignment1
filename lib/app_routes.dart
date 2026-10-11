@@ -39,7 +39,9 @@ class AppRoutes {
 
     // Task list
     tasks: (context) => const TaskListScreen(),
-    taskDetails: (context) => const TaskDetailsScreen(),
+    taskDetails: (context) => TaskDetailsScreen(
+      task: ModalRoute.of(context)!.settings.arguments as Task,
+    ),
     // createTask: (context) => const TaskFormScreen(),
     // editTask: (context) => const TaskFormScreen(),
     // teamProfile: (context) => const TeamProfileScreen(),
