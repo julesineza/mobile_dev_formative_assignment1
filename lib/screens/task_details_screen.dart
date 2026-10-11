@@ -98,6 +98,49 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
     }
   }
 
+  Future<void> _deleteTask() async {
+    if (_isSaving) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete task?'),
+        content: Text('Delete "${widget.task.name}"?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted || _isSaving) return;
+
+    setState(() => _isSaving = true);
+
+    try {
+      await _storage.deleteTask(widget.task.id);
+
+      if (!mounted) return;
+      Navigator.pop(context);
+    } catch (error) {
+      if (!mounted) return;
+
+      setState(() => _isSaving = false);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Could not delete the task. Please try again.'),
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -126,14 +169,22 @@ class _TaskDetailsScreenState extends State<TaskDetailsScreen> {
                     fontWeight: FontWeight.w600,
                   ),
                 ),
-                IconButton.filledTonal(
-                  onPressed: () {},
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppColors.softBackground,
-                    foregroundColor: AppColors.ink,
-                    shape: const CircleBorder(),
+                PopupMenuButton<String>(
+                  enabled: !_isSaving,
+                  icon: const Icon(
+                    Icons.more_horiz,
+                    color: AppColors.ink,
+                    size: 20,
                   ),
-                  icon: const Icon(Icons.more_horiz, size: 20),
+                  onSelected: (action) {
+                    if (action == 'delete') _deleteTask();
+                  },
+                  itemBuilder: (context) => const [
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Text('Delete'),
+                    ),
+                  ],
                 ),
               ],
             ),
