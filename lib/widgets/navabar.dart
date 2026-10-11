@@ -35,7 +35,7 @@ class Navbar extends StatelessWidget {
 
             _navItem(icon: Icons.people_outline, index: 3),
 
-            _navItem(icon: Icons.chat_bubble_outline, index: 4),
+            // _navItem(icon: Icons.chat_bubble_outline, index: 4),
           ],
         ),
       ),
@@ -70,7 +70,7 @@ class Navbar extends StatelessWidget {
         width: 60,
         height: 60,
         decoration: const BoxDecoration(
-          color: Colors.white,
+          color: Color.fromARGB(255, 201, 170, 83),
           shape: BoxShape.circle,
         ),
         child: const Icon(Icons.add, size: 32, color: Color(0xFF111B18)),

@@ -180,6 +180,8 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
       appBar: AppBar(
         backgroundColor: _pageBackground,
         elevation: 0,
+        automaticallyImplyLeading: false,
+        toolbarHeight: 12,
         // title: const Text('New task',
         //     style: TextStyle(color: _muted, fontSize: 23)),
         // iconTheme: const IconThemeData(color: _ink),
@@ -188,79 +190,71 @@ class _NewTaskScreenState extends State<NewTaskScreen> {
         child: Form(
           key: _formKey,
           child: SingleChildScrollView(
-            padding: const EdgeInsets.fromLTRB(24, 10, 24, 32),
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(20, 22, 20, 28),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                border: Border.all(color: _ink, width: 3),
-                borderRadius: BorderRadius.circular(30),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      _closeButton(),
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            widget.task == null ? 'New task' : 'Edit task',
-                            style: TextStyle(
-                              color: _ink,
-                              fontWeight: FontWeight.w700,
-                            ),
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    _closeButton(),
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          widget.task == null ? 'New task' : 'Edit task',
+                          style: TextStyle(
+                            color: _ink,
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
                       ),
-                      const SizedBox(width: 40),
-                    ],
-                  ),
-                  const SizedBox(height: 30),
-                  _label('TASK NAME'),
-                  _textField(_nameController, 'Design notification center'),
-                  const SizedBox(height: 20),
-                  _label('DESCRIPTION'),
-                  _textField(
-                    _descriptionController,
-                    'Create the primary notification list, filters, and empty state for mobile.',
-                    maxLines: 3,
-                  ),
-                  const SizedBox(height: 20),
-                  Row(
-                    children: [
-                      Expanded(child: _dateCard()),
-                      const SizedBox(width: 10),
-                      Expanded(child: _priorityCard()),
-                    ],
-                  ),
-                  const SizedBox(height: 20),
-                  _label('ASSIGNEES'),
-                  _assigneePicker(),
-                  const SizedBox(height: 20),
-                  _label('STATUS'),
-                  _statusPicker(),
-                  const SizedBox(height: 30),
-                  SizedBox(
-                    width: double.infinity,
-                    child: FilledButton(
-                      onPressed: _createTask,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: _ink,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(28),
-                        ),
-                      ),
-                      child: Text(
-                        widget.task == null ? 'Create task' : 'Save changes',
-                        style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    const SizedBox(width: 40),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _label('TASK NAME'),
+                _textField(_nameController, 'Design notification center'),
+                const SizedBox(height: 16),
+                _label('DESCRIPTION'),
+                _textField(
+                  _descriptionController,
+                  'Create the primary notification list, filters, and empty state for mobile.',
+                  maxLines: 3,
+                ),
+                const SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(child: _dateCard()),
+                    const SizedBox(width: 10),
+                    Expanded(child: _priorityCard()),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                _label('ASSIGNEES'),
+                _assigneePicker(),
+                const SizedBox(height: 16),
+                _label('STATUS'),
+                _statusPicker(),
+                const SizedBox(height: 22),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: _createTask,
+                    style: FilledButton.styleFrom(
+                      backgroundColor: _ink,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(28),
                       ),
                     ),
+                    child: Text(
+                      widget.task == null ? 'Create task' : 'Save changes',
+                      style: TextStyle(fontWeight: FontWeight.w700),
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
